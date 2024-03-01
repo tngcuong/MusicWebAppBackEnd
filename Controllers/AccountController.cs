@@ -74,7 +74,7 @@ namespace MusicWebAppBackend.Controllers
 
         [HttpPut]
         [Route(nameof(UpdateInfo))]     
-        public async Task<Payload<User>> UpdateInfo([FromQuery]UpdateAccountDto request)
+        public async Task<Payload<User>> UpdateInfo(UpdateAccountDto request)
         {
             return await _accountService.UpdateInfo(request);
         }

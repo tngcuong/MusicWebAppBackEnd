@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using MusicWebAppBackend.Infrastructure.Helpers;
 using MusicWebAppBackend.Infrastructure.Models;
 using MusicWebAppBackend.Infrastructure.ViewModels.User;
 
@@ -23,6 +24,11 @@ namespace MusicWebAppBackend.Infrastructure.Mappers
                .ForMember(x => x.Name, o => o.MapFrom(u => u.Name))
                .ForMember(x => x.Email, o => o.MapFrom(u => u.Email))
                .ForMember(x => x.Avatar, o => o.MapFrom(u => u.Avatar));
+
+            CreateMap<UpdateUserDto, User>()
+                .ForMember(x => x.UserName, o => o.MapFrom(u => u.Username))
+                .ForMember(x => x.Email, o => o.MapFrom(u => u.Email))
+                .ForMember(x => x.Password, o => o.MapFrom(u => PasswordHasher.HashPassword(u.Password)));
         }
     }
 }

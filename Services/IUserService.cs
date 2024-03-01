@@ -21,7 +21,7 @@ namespace MusicWebAppBackend.Services
         Task<Payload<Object>> GetUser(int pageIndex, int pageSize);
         Task<Payload<UserProfileDto>> GetUserById(string id);
         Task<Payload<User>> Insert(InsertUserDto request);
-        Task<IActionResult> UpdateUserById(string id, User user);
+        Task<Payload<UpdateUserDto>> UpdateUserById(string id, UpdateUserDto user);
         Task<Payload<User>> RemoveUserById(String id);
     }
 
@@ -124,9 +124,57 @@ namespace MusicWebAppBackend.Services
             return Payload<User>.Successfully(user, UserResource.DELETESUCCESS);
         }
 
-        public async Task<IActionResult> UpdateUserById(string id, User user)
+        public async Task<Payload<UpdateUserDto>> UpdateUserById(string id, UpdateUserDto user)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrEmpty(user.Username) || string.IsNullOrEmpty(user.Password)
+                || string.IsNullOrEmpty(user.Email) || string.IsNullOrEmpty(user.Role))
+            {
+                return Payload<UpdateUserDto>.BadRequest(AccountResource.NOTENTER);
+            }
+            if (!Validator.IsValidEmail(user.Email))
+            {
+                return Payload<UpdateUserDto>.BadRequest(AccountResource.VALIDEMAIL);
+            }
+            if (!Validator.IsValidPassword(user.Password) || !Validator.IsValidPasswordAdvanced(user.Password))
+            {
+                return Payload<UpdateUserDto>.BadRequest(AccountResource.FVALIDPASSWORD);
+            }
+            var entity = await _userRepository.GetByIdAsync(id);
+            if(entity == null)
+            {
+                return Payload<UpdateUserDto>.NotFound(UserResource.NOUSERFOUND);
+            }
+            var existUsername = from u in _userRepository.Table
+                                where u.UserName.Equals(user.Username)
+                                && u.IsDeleted == false && u.Id.Equals(id)
+                                select u.UserName;
+            if(existUsername.Any()) 
+            {
+                return Payload<UpdateUserDto>.Dublicated();
+            }
+
+            var roleData = await _roleService.GetRoleByName(user.Role);
+            
+            if ((int)roleData.ErrorCode != 200)
+            {
+                return Payload<UpdateUserDto>.ErrorInProcessing(RoleResource.NOTFOUND);
+            }
+            var userUpdate = user.MapTo<UpdateUserDto, User>(entity);
+
+            var roleEntity = await _roleService.GetRoleByIdUser(entity.Id);
+            if (roleData.Content != roleEntity.Content)
+            {
+                roleEntity.Content.Users.Remove(id);
+                await _roleRepository.UpdateAsync(roleEntity.Content);
+                Role role = roleData.Content;
+             
+                role.Users.Add(userUpdate.Id);
+                await _roleRepository.UpdateAsync(role);
+            }
+
+            await _userRepository.UpdateAsync(userUpdate);
+            return Payload<UpdateUserDto>.Successfully(user, AccountResource.SUCCESSREGIS);
+
         }
 
         public async Task<Payload<Object>> GetUser(int pageIndex, int pageSize)

@@ -56,5 +56,14 @@ namespace MusicWebAppBackend.Controllers
             var data = await _userService.RemoveUserById(id);
             return StatusCode((int)data.ErrorCode, data);
         }
+
+        [Authorize]
+        [Route(nameof(UpdateUserById))]
+        [HttpPut]
+        public async Task<ActionResult> UpdateUserById([FromQuery]string id, UpdateUserDto request)
+        {
+            var data = await _userService.UpdateUserById(id, request);
+            return StatusCode((int)data.ErrorCode, data);
+        }
     }
 }
