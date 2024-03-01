@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "CO/oy7692clYbT++CXsOJdVDwXmta2H6zQYkfPscvWg=",
+  "Source": "MusicWebAppBackend",
+  "BasePath": "_content/MusicWebAppBackend",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
