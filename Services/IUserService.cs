@@ -146,7 +146,7 @@ namespace MusicWebAppBackend.Services
             }
             var existUsername = from u in _userRepository.Table
                                 where u.UserName.Equals(user.Username)
-                                && u.IsDeleted == false && u.Id.Equals(id)
+                                && u.IsDeleted == false && !u.Id.Equals(id)
                                 select u.UserName;
             if(existUsername.Any()) 
             {
@@ -162,7 +162,7 @@ namespace MusicWebAppBackend.Services
             var userUpdate = user.MapTo<UpdateUserDto, User>(entity);
 
             var roleEntity = await _roleService.GetRoleByIdUser(entity.Id);
-            if (roleData.Content != roleEntity.Content)
+            if (roleData.Content.Name != roleEntity.Content.Name)
             {
                 roleEntity.Content.Users.Remove(id);
                 await _roleRepository.UpdateAsync(roleEntity.Content);
@@ -188,6 +188,7 @@ namespace MusicWebAppBackend.Services
                            Id = u.Id,
                            Avatar = u.Avatar,
                            Email = u.Email,
+                           Username = u.UserName,
                            Name = u.Name,
                            Role = r.Name
                        };
