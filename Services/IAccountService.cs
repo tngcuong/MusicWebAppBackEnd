@@ -116,12 +116,6 @@ namespace MusicWebAppBackend.Services
                 Token = token,
             };
 
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Expires = DateTime.UtcNow.AddMinutes(15),
-            };
-
             return Payload<Object>.Successfully(data, AccountResource.LOGINSUCCESS);
         }
 

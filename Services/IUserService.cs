@@ -179,11 +179,11 @@ namespace MusicWebAppBackend.Services
 
         public async Task<Payload<Object>> GetUser(int pageIndex, int pageSize)
         {
-            var qure = from r in _roleRepository.Table
+            var qure = (from r in _roleRepository.Table
                        from u in _userRepository.Table
                        where r.Users.Contains(u.Id)
                        where u.IsDeleted == false
-                       select new UserProfileDto
+                       select  new UserProfileDto
                        {
                            Id = u.Id,
                            Avatar = u.Avatar,
@@ -191,7 +191,7 @@ namespace MusicWebAppBackend.Services
                            Username = u.UserName,
                            Name = u.Name,
                            Role = r.Name
-                       };
+                       });
 
             var pageList = await PageList<UserProfileDto>.Create(qure, pageIndex, pageSize);
 
@@ -204,7 +204,7 @@ namespace MusicWebAppBackend.Services
             {
                 Data = pageList,
                 PageIndex = pageIndex,
-                Total = pageList.Count,
+                Total = qure.Count(),
                 TotalPages = pageList.totalPages
             }, UserResource.GETUSERSUCCESSFUL);
 

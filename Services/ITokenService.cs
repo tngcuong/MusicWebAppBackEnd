@@ -25,14 +25,18 @@ namespace MusicWebAppBackend.Services
         private readonly IRepository<User> _userRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IConfiguration _configuration;
+        private readonly IRoleService _roleService;
 
         public TokenService(IConfiguration configuration,
               IHttpContextAccessor httpContextAccessor,
-              IRepository<User> userRepository)
+              IRepository<User> userRepository,
+              IRoleService roleService)
         {
             _userRepository = userRepository;
             _httpContextAccessor = httpContextAccessor;
             _configuration = configuration;
+            _roleService = roleService;
+
         }
         public async Task<string> CreateToken(User user)
         {
@@ -45,6 +49,7 @@ namespace MusicWebAppBackend.Services
                 Subject = new System.Security.Claims.ClaimsIdentity(new[]
                 {
                     new Claim(ClaimTypes.Name, user.UserName),
+                    new Claim(ClaimTypes.Role,_roleService.GetRoleByIdUser(user.Id).Result.Content.Name),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 }),
                 Issuer = _configuration["Jwt:Issuer"],
