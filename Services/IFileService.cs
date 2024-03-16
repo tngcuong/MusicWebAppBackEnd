@@ -13,7 +13,8 @@ namespace MusicWebAppBackend.Services
     public interface IFileService
     {
         Task<string> SetAvatarDefault();
-        Task<bool> SetAvatar(IFormFile file,string id);
+        Task<bool> SetImage(IFormFile file, string id);
+        Task<bool> UploadMp3(IFormFile file, string userId);
     }
 
     public class FileService : IFileService
@@ -22,7 +23,7 @@ namespace MusicWebAppBackend.Services
         private static string _key = "cLH5vvofUvPIhFP6itdU6s4nzSaiFei7AvU1yVd89b2XzpqJ89ixXYIse441T+xWpaPZkQOsV/yv+AStPVD5nw==";
         private static BlobContainerClient _fileContainer;
         public FileService()
-        {  
+        {
         }
 
         public static BlobContainerClient connect(string blobname)
@@ -38,10 +39,10 @@ namespace MusicWebAppBackend.Services
         {
             var blobClient = connect("default");
             var blobUri = blobClient.Uri.ToString();
-            return blobUri+ "/user-icon-free-8.jpg";
+            return blobUri + "/user-icon-free-8.jpg";
         }
 
-        public async Task<bool> SetAvatar(IFormFile file, string id)
+        public async Task<bool> SetImage(IFormFile file, string id)
         {
             if (!Validator.IsImage(file))
             {
@@ -51,8 +52,8 @@ namespace MusicWebAppBackend.Services
             var blobClient = connect(id);
             bool exists = await blobClient.ExistsAsync();
 
-            if(!exists)
-            { 
+            if (!exists)
+            {
                 await blobClient.CreateAsync();
                 await blobClient.SetAccessPolicyAsync(Azure.Storage.Blobs.Models.PublicAccessType.Blob);
             }
@@ -64,6 +65,32 @@ namespace MusicWebAppBackend.Services
             }
 
             return true;
+        }
+
+        public async Task<bool> UploadMp3(IFormFile file, string userId)
+        {
+            if (!Validator.IsMP3File(file))
+            {
+                return false;
+            }
+
+            var blobClient = connect(userId);
+            bool exists = await blobClient.ExistsAsync();
+
+            if (!exists)
+            {
+                await blobClient.CreateAsync();
+                await blobClient.SetAccessPolicyAsync(Azure.Storage.Blobs.Models.PublicAccessType.Blob);
+            }
+
+            BlobClient client = blobClient.GetBlobClient(file.FileName);
+            await using (Stream? data = file.OpenReadStream())
+            {
+                await client.UploadAsync(data);
+            }
+
+            return true;
+
         }
     }
 }

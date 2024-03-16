@@ -31,7 +31,7 @@ namespace MusicWebAppBackend.Services
         Task<Payload<Object>> Login(AccountLoginDto request);
         Task<Payload<User>> Logout(string token);
         Task<Payload<User>> VerifyEmail(string userName, string password, string email, string otp);
-        Task<Payload<User>> ChangePasssord(string id,ChangePasswordDto request);
+        Task<Payload<User>> ChangePasssord(string id, ChangePasswordDto request);
         Task<Payload<User>> UpdateInfo(UpdateAccountDto request);
     }
 
@@ -68,7 +68,7 @@ namespace MusicWebAppBackend.Services
         public async Task<Payload<User>> ChangePasssord(string id, ChangePasswordDto request)
         {
             var user = await _accountRepositoty.GetByIdAsync(id);
-            if (user == null) 
+            if (user == null)
             {
                 return Payload<User>.NotFound(AccountResource.NOTFOUND);
             }
@@ -81,12 +81,12 @@ namespace MusicWebAppBackend.Services
                 return Payload<User>.BadRequest(AccountResource.FVALIDPASSWORD);
             }
 
-            User newUser = request.MapTo<ChangePasswordDto,User>(user);
+            User newUser = request.MapTo<ChangePasswordDto, User>(user);
             await _accountRepositoty.UpdateAsync(newUser);
-            return Payload<User>.Successfully(newUser,AccountResource.CHANGEPW);
+            return Payload<User>.Successfully(newUser, AccountResource.CHANGEPW);
         }
 
-        public async Task<Payload<Object>> Login([FromBody]AccountLoginDto request)
+        public async Task<Payload<Object>> Login([FromBody] AccountLoginDto request)
         {
             if (string.IsNullOrEmpty(request.UserName) || string.IsNullOrEmpty(request.Password))
             {
@@ -96,19 +96,19 @@ namespace MusicWebAppBackend.Services
 
             var user = _accountRepositoty.Table.FirstOrDefault(a => a.UserName.Equals(request.UserName) && a.IsDeleted == false);
 
-            if(user == null)
+            if (user == null)
             {
                 return Payload<Object>.ErrorInProcessing(AccountResource.NOTFOUND);
             }
 
-            if (!PasswordHasher.VerifyPassword(request.Password,user.Password))
+            if (!PasswordHasher.VerifyPassword(request.Password, user.Password))
             {
                 return Payload<Object>.BadRequest(AccountResource.LOGINFAIL);
             }
 
             string token = await _tokenService.CreateToken(user);
 
-            var refreshToken = await  _tokenService.GenerateRefreshToken();
+            var refreshToken = await _tokenService.GenerateRefreshToken();
 
             await _tokenService.SetRefreshToken(refreshToken, user);
             var data = new
@@ -147,7 +147,7 @@ namespace MusicWebAppBackend.Services
             }
 
             await SendMailRegister(model.Email);
-            return Payload<AccountRegisterDto>.Successfully(model, AccountResource.MAILSUCCESSFUL); 
+            return Payload<AccountRegisterDto>.Successfully(model, AccountResource.MAILSUCCESSFUL);
         }
 
         public async Task<Payload<EmailRegisterDto>> SendMailRegister(string mail)
@@ -169,12 +169,12 @@ namespace MusicWebAppBackend.Services
             });
 
             await _configMail.SetContent(mail, AccountResource.REGISTITLE, emailHTML);
-            var expiryTime = DateTime.Now.AddMinutes(5); 
+            var expiryTime = DateTime.Now.AddMinutes(5);
 
             _httpContextAccessor.HttpContext.Session.SetString("OTP", emailContent.Code.ToString());
             _httpContextAccessor.HttpContext.Session.SetString("OTPExpiryTime", expiryTime.ToString());
 
-            return Payload<EmailRegisterDto>.Successfully(new EmailRegisterDto { Email = mail});
+            return Payload<EmailRegisterDto>.Successfully(new EmailRegisterDto { Email = mail });
         }
 
         public async Task<Payload<User>> UpdateInfo(UpdateAccountDto request)
@@ -184,14 +184,14 @@ namespace MusicWebAppBackend.Services
             {
                 return Payload<User>.BadRequest(AccountResource.NOTFOUND);
             }
-            if(!await _fileService.SetAvatar(request.Avatar, request.Id))
+            if (!await _fileService.SetImage(request.Avatar, request.Id))
             {
                 return Payload<User>.BadRequest(FileResource.IMAGEFVALID);
-            } 
+            }
 
             var userUpdate = request.MapTo<UpdateAccountDto, User>(user);
             await _accountRepositoty.UpdateAsync(userUpdate);
-            return Payload<User>.Successfully(user ,AccountResource.UPDATESUCCESS);
+            return Payload<User>.Successfully(user, AccountResource.UPDATESUCCESS);
         }
 
         public async Task<Payload<User>> VerifyEmail(string userName, string password, string email, string otp)
@@ -201,7 +201,7 @@ namespace MusicWebAppBackend.Services
             if (storedOTP == null || storedOTP != otp)
                 return Payload<User>.BadRequest(AccountResource.WRONGOTP);
 
-            if(DateTime.Now > DateTime.Parse(OTPExpiryTime))
+            if (DateTime.Now > DateTime.Parse(OTPExpiryTime))
             {
                 _httpContextAccessor.HttpContext.Session.Clear();
                 return Payload<User>.BadRequest(AccountResource.EXPRIREOTP);

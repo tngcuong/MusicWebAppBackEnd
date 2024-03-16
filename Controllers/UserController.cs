@@ -15,10 +15,11 @@ namespace MusicWebAppBackend.Controllers
     public class UserController : Controller
     {
         private readonly IUserService _userService;
-
-        public UserController(IUserService userService)
+        private readonly ITokenService _tokenService;
+        public UserController(IUserService userService, ITokenService tokenService)
         {
             _userService = userService;
+            _tokenService = tokenService;
         }
 
         [Authorize]
@@ -65,5 +66,16 @@ namespace MusicWebAppBackend.Controllers
             var data = await _userService.UpdateUserById(id, request);
             return StatusCode((int)data.ErrorCode, data);
         }
+
+        [Authorize]
+        [Route(nameof(GetCurrentUser))]
+        [HttpPost]
+        public async Task<ActionResult> GetCurrentUser([FromBody]string token)
+        {
+            var data = await _tokenService.ValidateToken(token);
+            return StatusCode((int)data.ErrorCode, data);
+        }
+
+
     }
 }

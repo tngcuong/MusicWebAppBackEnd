@@ -16,14 +16,14 @@ namespace MusicWebAppBackend.Infrastructure.Helpers
                     file.CopyTo(memoryStream);
                     using (var img = Image.FromStream(memoryStream))
                     {
-                        
+
                         return true;
                     }
                 }
             }
             catch
             {
-                
+
                 return false;
             }
         }
@@ -94,6 +94,26 @@ namespace MusicWebAppBackend.Infrastructure.Helpers
             {
                 return new Regex(@"^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':""\\|,.<>?\/])").IsMatch(password);
             }
+            return false;
+        }
+
+        public static bool IsMP3File(IFormFile file)
+        {
+            // Kiểm tra xem tệp tin có tồn tại không
+            if (file == null || file.Length == 0)
+            {
+                return false;
+            }
+
+            // Lấy phần mở rộng của tệp tin
+            var fileExtension = Path.GetExtension(file.FileName);
+
+            // Kiểm tra xem phần mở rộng có phải là mp3 không
+            if (string.Equals(fileExtension, ".mp3", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
             return false;
         }
     }

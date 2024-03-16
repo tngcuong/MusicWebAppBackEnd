@@ -13,11 +13,11 @@ namespace MusicWebAppBackend.Services
 {
     public interface ITokenService
     {
-        Task<RefreshToken>  GenerateRefreshToken();
+        Task<RefreshToken> GenerateRefreshToken();
         Task<User> SetRefreshToken(RefreshToken newRefreshToken, User user);
         Task<string> CreateToken(User user);
         Task<Payload<Object>> RefreshToken(string id);
-
+        Task<Payload<Object>> ValidateToken(string token);
     }
 
     public class TokenService : ITokenService
@@ -48,7 +48,7 @@ namespace MusicWebAppBackend.Services
             {
                 Subject = new System.Security.Claims.ClaimsIdentity(new[]
                 {
-                    new Claim(ClaimTypes.Name, user.UserName),
+                    new Claim("username", user.Name),
                     new Claim(ClaimTypes.Role,_roleService.GetRoleByIdUser(user.Id).Result.Content.Name),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 }),
@@ -116,6 +116,41 @@ namespace MusicWebAppBackend.Services
                 User = user
             };
             return Payload<Object>.Successfully(data);
+        }
+
+        public async Task<Payload<Object>> ValidateToken(string token)
+        {
+            if (token == null)
+                return Payload<Object>.BadRequest();
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
+            try
+            {
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ClockSkew = TimeSpan.Zero,
+                }, out SecurityToken validatedToken);
+
+                var jwtToken = (JwtSecurityToken)validatedToken;
+                var username = jwtToken.Claims.FirstOrDefault(x => x.Type == "username").Value;
+                var role = jwtToken.Claims.FirstOrDefault(x => x.Type == "role").Value;
+                var data = new
+                {
+                    username = username,
+                    role = role,
+                };
+                return Payload<Object>.Successfully(data);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+
         }
     }
 }
