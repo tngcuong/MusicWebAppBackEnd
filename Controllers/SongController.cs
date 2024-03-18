@@ -18,8 +18,6 @@ namespace MusicWebAppBackend.Controllers
             _songService = songService;
         }
 
-
-        [Authorize]
         [Route(nameof(Insert))]
         [HttpPost]
         public async Task<ActionResult> Insert([FromQuery] SongInsertDto request)

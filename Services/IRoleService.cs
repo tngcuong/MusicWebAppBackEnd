@@ -4,6 +4,10 @@ using MusicWebAppBackend.Infrastructure.ViewModels.Role;
 using MusicWebAppBackend.Infrastructure.Models.Data;
 using MusicWebAppBackend.Infrastructure.Mappers.Config;
 using MusicWebAppBackend.Infrastructure.Models.Const;
+using MusicWebAppBackend.Infrastructure.Models.Paging;
+using MusicWebAppBackend.Infrastructure.ViewModels.Song;
+using System.Drawing.Printing;
+using System.Collections.Generic;
 
 namespace MusicWebAppBackend.Services
 {
@@ -12,23 +16,24 @@ namespace MusicWebAppBackend.Services
         Task<Payload<Role>> Add(AddRoleDto model);
         Task<Payload<Role>> GetRoleByIdUser(string request);
         Task<string> GetRoleNameByIdUser(string request);
-        Task<Role> GetRoleForUser(string request="User");
-        Task<Payload<Role>> GetRoleByName(string reques );
+        Task<Role> GetRoleForUser(string request = "User");
+        Task<Payload<Role>> GetRoleByName(string reques);
+        Task<Payload<List<RoleProfileDto>>> GetRole();
     }
 
     public class RoleService : IRoleService
     {
         private readonly IRepository<Role> _roleRepository;
-        public RoleService(IRepository<Role> roleRepository) 
-        { 
+        public RoleService(IRepository<Role> roleRepository)
+        {
             _roleRepository = roleRepository;
         }
 
         public async Task<Payload<Role>> Add(AddRoleDto model)
         {
-            Role role = model.MapTo<AddRoleDto,Role>();
+            Role role = model.MapTo<AddRoleDto, Role>();
             await _roleRepository.InsertAsync(role);
-            return Payload<Role>.Successfully(role,RoleResource.ADDSUCCESS);
+            return Payload<Role>.Successfully(role, RoleResource.ADDSUCCESS);
         }
 
         public async Task<Payload<Role>> GetRoleByIdUser(string request)
@@ -54,7 +59,7 @@ namespace MusicWebAppBackend.Services
         public async Task<Payload<Role>> GetRoleByName(string request)
         {
             var role = _roleRepository.Table.FirstOrDefault(e => e.Name.Equals(request));
-            if(role == null)
+            if (role == null)
             {
                 return Payload<Role>.ErrorInProcessing();
             }
@@ -68,7 +73,15 @@ namespace MusicWebAppBackend.Services
             {
                 return null;
             }
-            return role; 
+            return role;
+        }
+
+        public async Task<Payload<List<RoleProfileDto>>> GetRole()
+        {
+            var data = await _roleRepository.GetAllAsync();
+            var res = data.MapTo<List<Role>, List<RoleProfileDto>>();
+
+            return Payload<List<RoleProfileDto>>.Successfully(res, RoleResource.GETSUCCESS);
         }
     }
 }

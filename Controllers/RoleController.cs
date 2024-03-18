@@ -8,7 +8,7 @@ namespace MusicWebAppBackend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-
+    [Authorize]
     public class RoleController : ControllerBase
     {
         private readonly IRoleService _roleService;
@@ -17,11 +17,21 @@ namespace MusicWebAppBackend.Controllers
             _roleService = roleService;
         }
 
+
         [Route(nameof(Insert))]
         [HttpPost]
         public async Task<ActionResult> Insert(AddRoleDto request)
         {
             var data = await _roleService.Add(request);
+            return StatusCode((int)data.ErrorCode, data);
+
+        }
+
+        [Route(nameof(GetAll))]
+        [HttpGet]
+        public async Task<ActionResult> GetAll()
+        {
+            var data = await _roleService.GetRole();
             return StatusCode((int)data.ErrorCode, data);
 
         }
