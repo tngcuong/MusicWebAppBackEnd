@@ -17,6 +17,7 @@ namespace MusicWebAppBackend.Extensions
         {
             services.AddScoped(typeof(IRepository<>), typeof(MongoRepository<>));
             services.AddHttpContextAccessor();
+            services.AddDistributedMemoryCache();
             services.AddScoped<ConfigEmail>();
             services.AddScoped<IFileService,FileService>();
             services.AddScoped<IUserService, UserService>();

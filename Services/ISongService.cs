@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using MusicWebAppBackend.Infrastructure.Mappers.Config;
 using MusicWebAppBackend.Infrastructure.Models;
 using MusicWebAppBackend.Infrastructure.Models.Const;
@@ -15,10 +16,10 @@ namespace MusicWebAppBackend.Services
     public interface ISongService
     {
         Task<Payload<Object>> GetSong(int pageIndex, int pageSize);
-        Song GetById(string id);
+        Task<Payload<SongProfileDto>> GetById(string id);
         Task<Payload<Song>> Insert(SongInsertDto request);
         void Update(string id, Song song);
-        void Remove(String id);
+        Task<Payload<Song>> RemoveUserById(String id);
     }
 
     public class SongService : ISongService
@@ -45,6 +46,7 @@ namespace MusicWebAppBackend.Services
                             Name = s.Name,
                             Source = s.Source,
                             CreateAt = s.CreatedAt,
+                            UserId = s.UserId
                         });
 
             var pageList = await PageList<SongProfileDto>.Create(qure, pageIndex, pageSize);
@@ -63,9 +65,11 @@ namespace MusicWebAppBackend.Services
             }, SongResource.GETSUCCESS);
         }
 
-        public Song GetById(string id)
+        public async Task<Payload<SongProfileDto>> GetById(string id)
         {
-            throw new NotImplementedException();
+            var song = await _songRepository.GetByIdAsync(id);
+            var songDto = song.MapTo<Song,SongProfileDto>();
+            return Payload<SongProfileDto>.Successfully(songDto);
         }
 
         public async Task<Payload<Song>> Insert(SongInsertDto request)
@@ -76,29 +80,42 @@ namespace MusicWebAppBackend.Services
                 return Payload<Song>.NotFound(UserResource.NOUSERFOUND);
             }
 
-            if (!await _fileService.SetImage(request.Img, request.UserId))
+            IFormFile imgFile = await _fileService.SetImage(request.Img, request.UserId);
+            if (imgFile.Length == 0 && imgFile != null)
             {
                 return Payload<Song>.BadRequest(FileResource.IMAGEFVALID);
             }
 
-            if (!await _fileService.UploadMp3(request.Source, request.UserId))
+            IFormFile sourceFile = await _fileService.UploadMp3(request.Source, request.UserId);
+            if (sourceFile.Length == 0 && sourceFile != null)
             {
                 return Payload<Song>.BadRequest(FileResource.MP3FVALID);
             }
+
+            request.Source = sourceFile;
+            request.Img = imgFile;
 
             Song song = request.MapTo<SongInsertDto, Song>();
             await _songRepository.InsertAsync(song);
             return Payload<Song>.Successfully(song, FileResource.SUCCESS);
         }
 
-        public void Remove(string id)
+        public void Update(string id, Song song)
         {
             throw new NotImplementedException();
         }
 
-        public void Update(string id, Song song)
+        public async Task<Payload<Song>> RemoveUserById(string id)
         {
-            throw new NotImplementedException();
+            var song = await _songRepository.GetByIdAsync(id);
+            if (song == null)
+            {
+                Payload<Song>.NotFound(SongResource.NOSONGFOUND);
+            }
+
+            song.IsDeleted = true;
+            await _songRepository.UpdateAsync(song);
+            return Payload<Song>.Successfully(song, SongResource.DELETESUCCESS);
         }
     }
 }

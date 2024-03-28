@@ -43,26 +43,34 @@ namespace MusicWebAppBackend.Services
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
             var credentails = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-
-            var tokenDescription = new SecurityTokenDescriptor
+            try
             {
-                Subject = new System.Security.Claims.ClaimsIdentity(new[]
+                var tokenDescription = new SecurityTokenDescriptor
                 {
+                    Subject = new System.Security.Claims.ClaimsIdentity(new[]
+                                {
                     new Claim("username", user.Name),
+                    new Claim("id", user.Id),
                     new Claim(ClaimTypes.Role,_roleService.GetRoleByIdUser(user.Id).Result.Content.Name),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 }),
-                Issuer = _configuration["Jwt:Issuer"],
-                Audience = _configuration["Jwt:Audience"],
-                Expires = DateTime.Now.AddMinutes(15),
-                SigningCredentials = credentails,
-            };
+                    Issuer = _configuration["Jwt:Issuer"],
+                    Audience = _configuration["Jwt:Audience"],
+                    Expires = DateTime.Now.AddMinutes(15),
+                    SigningCredentials = credentails,
+                };
 
-            var token = new JwtSecurityTokenHandler().CreateToken(tokenDescription);
-            var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
+                var token = new JwtSecurityTokenHandler().CreateToken(tokenDescription);
+                var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
 
 
-            return accessToken;
+                return accessToken;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+
         }
 
         public async Task<RefreshToken> GenerateRefreshToken()
@@ -107,15 +115,21 @@ namespace MusicWebAppBackend.Services
                 return Payload<Object>.BadRequest();
             }
 
-            string token = await CreateToken(user);
-            var newRefreshToken = await GenerateRefreshToken();
-            await SetRefreshToken(newRefreshToken, user);
-            var data = new
+            try
             {
-                Token = token,
-                User = user
-            };
-            return Payload<Object>.Successfully(data);
+                string token = await CreateToken(user);
+                var newRefreshToken = await GenerateRefreshToken();
+                await SetRefreshToken(newRefreshToken, user);
+                var data = new
+                {
+                    Token = token
+                };
+                return Payload<Object>.Successfully(data);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         public async Task<Payload<Object>> ValidateToken(string token)
@@ -139,10 +153,12 @@ namespace MusicWebAppBackend.Services
                 var jwtToken = (JwtSecurityToken)validatedToken;
                 var username = jwtToken.Claims.FirstOrDefault(x => x.Type == "username").Value;
                 var role = jwtToken.Claims.FirstOrDefault(x => x.Type == "role").Value;
+                var id = jwtToken.Claims.FirstOrDefault(x => x.Type == "id").Value;
                 var data = new
                 {
                     username = username,
                     role = role,
+                    id = id
                 };
                 return Payload<Object>.Successfully(data);
             }

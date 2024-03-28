@@ -6,6 +6,7 @@ using MusicWebAppBackend.Infrastructure.ViewModels;
 using MusicWebAppBackend.Infrastructure.ViewModels.Account;
 using MusicWebAppBackend.Services;
 using System.Net;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MusicWebAppBackend.Controllers
 {
@@ -27,17 +28,19 @@ namespace MusicWebAppBackend.Controllers
         [HttpPost]
         [AllowAnonymous]
         [Route(nameof(Register))]
-        public async Task<Payload<AccountRegisterDto>> Register(AccountRegisterDto account)
+        public async Task<ActionResult> Register(AccountRegisterDto account)
         {
-           return await _accountService.Register(account);
+            var data = await _accountService.Register(account);
+            return StatusCode((int)data.ErrorCode, data);
         }
 
-        [HttpGet]
+        [HttpPost]
         [AllowAnonymous]
         [Route(nameof(VerifyEmail))]
-        public async Task<Payload<User>> VerifyEmail(string username, string password, string email, string otp)
+        public async Task<ActionResult> VerifyEmail(VerifyDto request)
         {
-            return await _accountService.VerifyEmail(username, password, email, otp);
+            var data = await _accountService.VerifyEmail(request);
+            return StatusCode((int)data.ErrorCode, data);
         }
 
 
@@ -60,9 +63,10 @@ namespace MusicWebAppBackend.Controllers
 
         [HttpPost]
         [Route(nameof(RefreshToken))]
-        public async Task<Payload<Object>> RefreshToken(string id)
+        public async Task<ActionResult> RefreshToken(string id)
         {
-            return await _tokenService.RefreshToken(id);
+            var data = await _tokenService.RefreshToken(id);
+            return StatusCode((int)data.ErrorCode, data);
         }
 
         [HttpPut]
@@ -74,9 +78,10 @@ namespace MusicWebAppBackend.Controllers
 
         [HttpPut]
         [Route(nameof(UpdateInfo))]     
-        public async Task<Payload<User>> UpdateInfo(UpdateAccountDto request)
+        public async Task<ActionResult> UpdateInfo(UpdateAccountDto request)
         {
-            return await _accountService.UpdateInfo(request);
+            var data = await _accountService.UpdateInfo(request);
+            return StatusCode((int)data.ErrorCode, data);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using MusicWebAppBackend.Infrastructure.Enum;
+﻿using MongoDB.Bson;
+using MusicWebAppBackend.Infrastructure.Enum;
 using System.Drawing;
 using System.Net.Mail;
 using System.Text.RegularExpressions;

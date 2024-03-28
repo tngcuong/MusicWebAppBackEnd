@@ -9,6 +9,7 @@ namespace MusicWebAppBackend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class SongController : ControllerBase
     {
         private readonly ISongService _songService;
@@ -20,7 +21,8 @@ namespace MusicWebAppBackend.Controllers
 
         [Route(nameof(Insert))]
         [HttpPost]
-        public async Task<ActionResult> Insert([FromQuery] SongInsertDto request)
+        [AllowAnonymous]
+        public async Task<ActionResult> Insert([FromForm] SongInsertDto request)
         {
             var data = await _songService.Insert(request);
             return StatusCode((int)data.ErrorCode, data);
@@ -28,9 +30,28 @@ namespace MusicWebAppBackend.Controllers
 
         [Route(nameof(GetSong))]
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult> GetSong(int pageIndex, int pageSize)
         {
             var data = await _songService.GetSong(pageIndex, pageSize);
+            return StatusCode((int)data.ErrorCode, data);
+        }
+
+        [Route(nameof(DeleteASongById))]
+        [HttpDelete]
+        [AllowAnonymous]
+        public async Task<ActionResult> DeleteASongById(string id)
+        {
+            var data = await _songService.RemoveUserById(id);
+            return StatusCode((int)data.ErrorCode, data);
+        }
+
+        [Route(nameof(GetSongById))]
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<ActionResult> GetSongById(string id)
+        {
+            var data = await _songService.GetById(id);
             return StatusCode((int)data.ErrorCode, data);
         }
     }

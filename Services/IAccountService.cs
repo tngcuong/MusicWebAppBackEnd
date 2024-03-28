@@ -30,7 +30,7 @@ namespace MusicWebAppBackend.Services
         Task<Payload<AccountRegisterDto>> Register(AccountRegisterDto model);
         Task<Payload<Object>> Login(AccountLoginDto request);
         Task<Payload<User>> Logout(string token);
-        Task<Payload<User>> VerifyEmail(string userName, string password, string email, string otp);
+        Task<Payload<User>> VerifyEmail(VerifyDto request);
         Task<Payload<User>> ChangePasssord(string id, ChangePasswordDto request);
         Task<Payload<User>> UpdateInfo(UpdateAccountDto request);
     }
@@ -143,7 +143,7 @@ namespace MusicWebAppBackend.Services
                         select a;
             if (qurey.Any())
             {
-                return Payload<AccountRegisterDto>.Dublicated();
+                return Payload<AccountRegisterDto>.Dublicated(AccountResource.DUPLICATEUSERNAME);
             }
 
             await SendMailRegister(model.Email);
@@ -173,7 +173,6 @@ namespace MusicWebAppBackend.Services
 
             _httpContextAccessor.HttpContext.Session.SetString("OTP", emailContent.Code.ToString());
             _httpContextAccessor.HttpContext.Session.SetString("OTPExpiryTime", expiryTime.ToString());
-
             return Payload<EmailRegisterDto>.Successfully(new EmailRegisterDto { Email = mail });
         }
 
@@ -184,7 +183,9 @@ namespace MusicWebAppBackend.Services
             {
                 return Payload<User>.BadRequest(AccountResource.NOTFOUND);
             }
-            if (!await _fileService.SetImage(request.Avatar, request.Id))
+
+            var data = await _fileService.SetImage(request.Avatar, request.Id);
+            if (data.Length < 1 && data == null)
             {
                 return Payload<User>.BadRequest(FileResource.IMAGEFVALID);
             }
@@ -194,11 +195,11 @@ namespace MusicWebAppBackend.Services
             return Payload<User>.Successfully(user, AccountResource.UPDATESUCCESS);
         }
 
-        public async Task<Payload<User>> VerifyEmail(string userName, string password, string email, string otp)
+        public async Task<Payload<User>> VerifyEmail(VerifyDto request)
         {
             var OTPExpiryTime = _httpContextAccessor.HttpContext.Session.GetString("OTPExpiryTime");
             var storedOTP = _httpContextAccessor.HttpContext.Session.GetString("OTP");
-            if (storedOTP == null || storedOTP != otp)
+            if (storedOTP == null || storedOTP != request.OTP)
                 return Payload<User>.BadRequest(AccountResource.WRONGOTP);
 
             if (DateTime.Now > DateTime.Parse(OTPExpiryTime))
@@ -211,9 +212,9 @@ namespace MusicWebAppBackend.Services
             {
                 Avatar = await _fileService.SetAvatarDefault(),
                 Name = RenderRandomCode.GenerateRandomString(14),
-                UserName = userName,
-                Email = email,
-                Password = PasswordHasher.HashPassword(password),
+                UserName = request.UserName,
+                Email = request.Email,
+                Password = PasswordHasher.HashPassword(request.Password),
             };
 
             Role role = await _roleService.GetRoleForUser();

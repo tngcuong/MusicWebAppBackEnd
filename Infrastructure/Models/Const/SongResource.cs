@@ -4,5 +4,6 @@
     {
         public const string GETSUCCESS = "Get songs successful.";
         public const string NOSONGFOUND = "No song found.";
+        public const string DELETESUCCESS = "Delete song successful.";
     }
 }

@@ -13,8 +13,8 @@ namespace MusicWebAppBackend.Services
     public interface IFileService
     {
         Task<string> SetAvatarDefault();
-        Task<bool> SetImage(IFormFile file, string id);
-        Task<bool> UploadMp3(IFormFile file, string userId);
+        Task<IFormFile> SetImage(IFormFile file, string id);
+        Task<IFormFile> UploadMp3(IFormFile file, string userId);
     }
 
     public class FileService : IFileService
@@ -42,55 +42,76 @@ namespace MusicWebAppBackend.Services
             return blobUri + "/user-icon-free-8.jpg";
         }
 
-        public async Task<bool> SetImage(IFormFile file, string id)
+        public async Task<IFormFile> SetImage(IFormFile file, string id)
         {
             if (!Validator.IsImage(file))
             {
-                return false;
+                return null;
             }
-
-            var blobClient = connect(id);
-            bool exists = await blobClient.ExistsAsync();
-
-            if (!exists)
+            try
             {
-                await blobClient.CreateAsync();
-                await blobClient.SetAccessPolicyAsync(Azure.Storage.Blobs.Models.PublicAccessType.Blob);
-            }
+                var blobClient = connect(id);
+                bool exists = await blobClient.ExistsAsync();
 
-            BlobClient client = blobClient.GetBlobClient(file.FileName);
-            await using (Stream? data = file.OpenReadStream())
+                if (!exists)
+                {
+                    await blobClient.CreateAsync();
+                    await blobClient.SetAccessPolicyAsync(Azure.Storage.Blobs.Models.PublicAccessType.Blob);
+                }
+
+                string fileName = FunctionHelper.GenerateUniqueFileName(file);
+                BlobClient client = blobClient.GetBlobClient(fileName);
+                await using (Stream? data = file.OpenReadStream())
+                {
+                    await client.UploadAsync(data);
+                }
+
+                var renamedFile = new FormFile(file.OpenReadStream(), 0, file.Length, null, fileName);
+                return renamedFile;
+            }
+            catch (Exception ex)
             {
-                await client.UploadAsync(data);
+                throw new Exception(ex.Message);
             }
 
-            return true;
         }
 
-        public async Task<bool> UploadMp3(IFormFile file, string userId)
+        public async Task<IFormFile> UploadMp3(IFormFile file, string userId)
         {
             if (!Validator.IsMP3File(file))
             {
-                return false;
+                return null;
             }
 
-            var blobClient = connect(userId);
-            bool exists = await blobClient.ExistsAsync();
-
-            if (!exists)
+            if (file.Length > 6 * 1024 * 1024)
             {
-                await blobClient.CreateAsync();
-                await blobClient.SetAccessPolicyAsync(Azure.Storage.Blobs.Models.PublicAccessType.Blob);
+                return null;
             }
 
-            BlobClient client = blobClient.GetBlobClient(file.FileName);
-            await using (Stream? data = file.OpenReadStream())
+            try
             {
-                await client.UploadAsync(data);
+                var blobClient = connect(userId);
+                bool exists = await blobClient.ExistsAsync();
+
+                if (!exists)
+                {
+                    await blobClient.CreateAsync();
+                    await blobClient.SetAccessPolicyAsync(Azure.Storage.Blobs.Models.PublicAccessType.Blob);
+                }
+                string fileName = FunctionHelper.GenerateUniqueFileName(file);
+                BlobClient client = blobClient.GetBlobClient(fileName);
+                await using (Stream? data = file.OpenReadStream())
+                {
+                    await client.UploadAsync(data);
+                }
+
+                var renamedFile = new FormFile(file.OpenReadStream(), 0, file.Length, null, fileName);
+                return renamedFile;
             }
-
-            return true;
-
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
     }
 }

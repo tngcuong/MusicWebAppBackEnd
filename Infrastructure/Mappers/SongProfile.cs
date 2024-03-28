@@ -14,6 +14,13 @@ namespace MusicWebAppBackend.Infrastructure.Mappers
                  .ForMember(x => x.Img, o => o.MapFrom(u => "https://musicwebapp.blob.core.windows.net/" + u.UserId + "/" + u.Img.FileName))
                 .ForMember(x => x.Name, o => o.MapFrom(u => u.Name))
                 .ForMember(x => x.UserId, o => o.MapFrom(u => u.UserId));
+
+            CreateMap<Song, SongProfileDto>()
+                .ForMember(x => x.Source, o => o.MapFrom(u => u.Source))
+                .ForMember(x => x.Image, o => o.MapFrom(u => u.Img))
+               .ForMember(x => x.Name, o => o.MapFrom(u => u.Name))
+               .ForMember(x => x.UserId, o => o.MapFrom(u => u.UserId))
+               .ForMember(x => x.Id, o => o.MapFrom(u => u.Id));
         }
     }
 }

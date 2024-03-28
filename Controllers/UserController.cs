@@ -12,6 +12,7 @@ namespace MusicWebAppBackend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UserController : Controller
     {
         private readonly IUserService _userService;
@@ -22,7 +23,7 @@ namespace MusicWebAppBackend.Controllers
             _tokenService = tokenService;
         }
 
-        [Authorize]
+        
         [Route(nameof(Insert))]
         [HttpPost]
         public async Task<ActionResult> Insert(InsertUserDto request)
@@ -31,7 +32,7 @@ namespace MusicWebAppBackend.Controllers
             return StatusCode((int)data.ErrorCode, data);
         }
 
-        [Authorize]
+        [AllowAnonymous]
         [Route(nameof(GetUserById))]
         [HttpGet]
         public async Task<ActionResult> GetUserById(string id)
@@ -40,7 +41,7 @@ namespace MusicWebAppBackend.Controllers
             return StatusCode((int)data.ErrorCode, data);
         }
 
-        [Authorize]
+        [AllowAnonymous]
         [Route(nameof(GetAllUser))]
         [HttpGet]
         public async Task<IActionResult> GetAllUser(int pageIndex, int pageSize)

@@ -43,7 +43,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddSession(options =>
 {
-    options.Cookie.IsEssential = true; 
+    options.Cookie.IsEssential = true;
+    options.IOTimeout = TimeSpan.FromMinutes(30);
 });
 
 builder.Services.AddSwaggerGen(a =>

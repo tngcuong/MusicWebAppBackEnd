@@ -8,7 +8,7 @@
         public const string VALIDEMAIL = "Invalid email.";
         public const string REGISTITLE = "Account Registration Confirmation";
         public const string MAILSUCCESSFUL = "Send email successfull.";
-        public const string WRONGOTP = "Something went wrong with OTP.";
+        public const string WRONGOTP = "OTP is incorrect.";
         public const string EXPRIREOTP = "OPT expired.";
         public const string LOGINFAIL = "Username or password is correct.";
         public const string LOGINSUCCESS = "Login successful.";
@@ -17,6 +17,7 @@
         public const string CHANGEPW = "Change password successful.";
         public const string UPDATESUCCESS = "Update successful.";
         public const string NOTENTER = "Please enter your username and password.";
+        public const string DUPLICATEUSERNAME = "Username exist";
     }
 }
 

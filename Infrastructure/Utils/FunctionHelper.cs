@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using MongoDB.Bson;
+using System.Globalization;
 
 namespace MusicWebAppBackend.Infrastructure.Helpers
 {
@@ -31,5 +32,17 @@ namespace MusicWebAppBackend.Infrastructure.Helpers
             }
         }
 
+        public static string RandomStringUnique()
+        {
+            return ObjectId.GenerateNewId().ToString();
+        }
+
+        public static string GenerateUniqueFileName(IFormFile file)
+        {
+            string extension = Path.GetExtension(file.FileName);
+            string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file.FileName);
+            string uniqueFileName = $"{RandomStringUnique()}-{fileNameWithoutExtension}{extension}";
+            return uniqueFileName;
+        }
     }
 }

@@ -9,7 +9,7 @@ namespace MusicWebAppBackend.Infrastructure.Helpers
         public static int GenerateRandomSixDigitNumber()
         {
             Random random = new Random();
-            return random.Next(100000, 999999); // Số ngẫu nhiên từ 100000 đến 999999
+            return random.Next(100000, 999999);
         }
 
         public static string GenerateRandomString(int length)
