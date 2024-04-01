@@ -81,13 +81,13 @@ namespace MusicWebAppBackend.Services
             }
 
             IFormFile imgFile = await _fileService.SetImage(request.Img, request.UserId);
-            if (imgFile.Length == 0 && imgFile != null)
+            if (imgFile.Length == 0 && imgFile == null)
             {
                 return Payload<Song>.BadRequest(FileResource.IMAGEFVALID);
             }
 
             IFormFile sourceFile = await _fileService.UploadMp3(request.Source, request.UserId);
-            if (sourceFile.Length == 0 && sourceFile != null)
+            if (sourceFile.Length == 0 && sourceFile == null)
             {
                 return Payload<Song>.BadRequest(FileResource.MP3FVALID);
             }

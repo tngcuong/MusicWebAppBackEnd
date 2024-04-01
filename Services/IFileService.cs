@@ -83,7 +83,7 @@ namespace MusicWebAppBackend.Services
                 return null;
             }
 
-            if (file.Length > 6 * 1024 * 1024)
+            if (file.Length > 10 * 1024 * 1024)
             {
                 return null;
             }
