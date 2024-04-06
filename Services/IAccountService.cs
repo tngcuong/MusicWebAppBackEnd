@@ -185,7 +185,7 @@ namespace MusicWebAppBackend.Services
             }
 
             var data = await _fileService.SetImage(request.Avatar, request.Id);
-            if (data.Length < 1 && data == null)
+            if (data.Length < 1 || data == null || data is EmptyFormFile)
             {
                 return Payload<User>.BadRequest(FileResource.IMAGEFVALID);
             }

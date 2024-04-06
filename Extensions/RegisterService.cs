@@ -19,6 +19,7 @@ namespace MusicWebAppBackend.Extensions
             services.AddHttpContextAccessor();
             services.AddDistributedMemoryCache();
             services.AddScoped<ConfigEmail>();
+            services.AddScoped<IPlayListService, PlayListService>();
             services.AddScoped<IFileService,FileService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IRoleService, RoleService>();

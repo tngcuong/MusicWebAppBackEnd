@@ -46,7 +46,7 @@ namespace MusicWebAppBackend.Services
         {
             if (!Validator.IsImage(file))
             {
-                return null;
+                return new EmptyFormFile();
             }
             try
             {
@@ -80,12 +80,12 @@ namespace MusicWebAppBackend.Services
         {
             if (!Validator.IsMP3File(file))
             {
-                return null;
+                return new EmptyFormFile();
             }
 
             if (file.Length > 10 * 1024 * 1024)
             {
-                return null;
+                return new EmptyFormFile();
             }
 
             try

@@ -9,6 +9,8 @@ namespace MusicWebAppBackend.Infrastructure.Models
         public string Img { get; set; }
         public string Source { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public bool IsPrivate { get; set; }
+        public float DurationTime { get; set; }
         public bool IsDeleted { get; set; } = false;
     }
 }

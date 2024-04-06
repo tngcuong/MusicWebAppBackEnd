@@ -6,5 +6,6 @@
         public IFormFile Img { get; set; }
         public string Name { get; set; }
         public IFormFile Source { get; set; }
+        public float DurationTime { get; set; }
     }
 }

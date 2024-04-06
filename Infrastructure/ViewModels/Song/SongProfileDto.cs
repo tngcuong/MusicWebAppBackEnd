@@ -7,6 +7,7 @@
         public string Image { get; set; }
         public string Name { get; set; }
         public string Source { get; set; }
+        public float DurationTime { get; set; }
         public DateTime CreateAt { get; set; }
     }
 }
