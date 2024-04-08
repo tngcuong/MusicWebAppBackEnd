@@ -20,7 +20,7 @@ namespace MusicWebAppBackend.Infrastructure.Mappers
                 .ForMember(x => x.Source, o => o.MapFrom(u => u.Source))
                 .ForMember(x => x.Image, o => o.MapFrom(u => u.Img))
                .ForMember(x => x.Name, o => o.MapFrom(u => u.Name))
-               .ForMember(x => x.UserId, o => o.MapFrom(u => u.UserId))
+               .ForMember(x => x.User, o => o.MapFrom(u => u.UserId))
                .ForMember(x => x.Id, o => o.MapFrom(u => u.Id))
                 .ForMember(x => x.DurationTime, o => o.MapFrom(u => u.DurationTime));
         }

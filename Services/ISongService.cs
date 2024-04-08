@@ -27,13 +27,16 @@ namespace MusicWebAppBackend.Services
         private readonly IRepository<Song> _songRepository;
         private readonly IRepository<User> _userRepository;
         private readonly IFileService _fileService;
+        private readonly IUserService _userService;
         public SongService(IRepository<Song> songRepository,
             IRepository<User> userRepository,
-            IFileService fileService)
+            IFileService fileService,
+            IUserService userService)
         {
             _songRepository = songRepository;
             _userRepository = userRepository;
             _fileService = fileService;
+            _userService = userService;
         }
         public async Task<Payload<Object>> GetSong(int pageIndex, int pageSize)
         {
@@ -47,10 +50,16 @@ namespace MusicWebAppBackend.Services
                             Source = s.Source,
                             DurationTime = s.DurationTime,
                             CreateAt = s.CreatedAt,
-                            UserId = s.UserId
-                        });
+                            UserId = s.UserId,
+                            User = new UserProfileDto() { }
+                        }).ToList();
 
-            var pageList = await PageList<SongProfileDto>.Create(qure, pageIndex, pageSize);
+            foreach (var item in qure)
+            {
+                item.User = _userService.GetUserById(item.UserId).Result.Content;
+            }
+
+            var pageList = await PageList<SongProfileDto>.Create(qure.AsQueryable(), pageIndex, pageSize);
 
             if (pageList.Count == 0)
             {
@@ -69,7 +78,7 @@ namespace MusicWebAppBackend.Services
         public async Task<Payload<SongProfileDto>> GetById(string id)
         {
             var song = await _songRepository.GetByIdAsync(id);
-            var songDto = song.MapTo<Song,SongProfileDto>();
+            var songDto = song.MapTo<Song, SongProfileDto>();
             return Payload<SongProfileDto>.Successfully(songDto);
         }
 
