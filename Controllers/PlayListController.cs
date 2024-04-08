@@ -27,9 +27,9 @@ namespace MusicWebAppBackend.Controllers
 
         [Route(nameof(GetPlayListById))]
         [HttpGet]
-        public async Task<ActionResult> GetPlayListById(string request)
+        public async Task<ActionResult> GetPlayListById(string id)
         {
-            var data = await _playListService.GetById(request);
+            var data = await _playListService.GetById(id);
             return StatusCode((int)data.ErrorCode, data);
 
         }

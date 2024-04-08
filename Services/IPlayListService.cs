@@ -88,7 +88,7 @@ namespace MusicWebAppBackend.Services
 
             if (pageList.Count == 0)
             {
-                return Payload<Object>.NotFound(SongResource.NOSONGFOUND);
+                return Payload<Object>.NotFound(PlayListResource.NOALBUMFOUND);
             }
 
             return Payload<Object>.Successfully(new
@@ -97,7 +97,7 @@ namespace MusicWebAppBackend.Services
                 PageIndex = pageIndex,
                 Total = qure.Count(),
                 TotalPages = pageList.totalPages
-            }, SongResource.GETSUCCESS);
+            }, PlayListResource.GETSUCCESS);
         }
 
         public async Task<Payload<PLaylist>> InsertAPlayList(InsertPlayListDto request)
@@ -105,7 +105,7 @@ namespace MusicWebAppBackend.Services
             var user = await _userRepository.GetByIdAsync(request.UserId);
             if (user == null)
             {
-                return Payload<PLaylist>.NotFound(UserResource.NOUSERFOUND);
+                return Payload<PLaylist>.NotFound(PlayListResource.NOALBUMFOUND);
             }
 
             var imgFile = await _fileService.SetImage(request.Thumbnail, request.UserId);

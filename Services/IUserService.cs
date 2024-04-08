@@ -44,8 +44,9 @@ namespace MusicWebAppBackend.Services
 
         public async Task<Payload<UserProfileDto>> GetUserById(string id)
         {
-            var data =  from r in _roleRepository.Table
+            var data =           from r in _roleRepository.Table
                                   from u in _userRepository.Table
+                                  where u.Id == id
                                   where r.Users.Contains(id)
                                   where u.IsDeleted == false
                                   select new UserProfileDto
