@@ -77,9 +77,24 @@ namespace MusicWebAppBackend.Services
 
         public async Task<Payload<SongProfileDto>> GetById(string id)
         {
-            var song = await _songRepository.GetByIdAsync(id);
-            var songDto = song.MapTo<Song, SongProfileDto>();
-            return Payload<SongProfileDto>.Successfully(songDto);
+            var qure = (from s in _songRepository.Table
+                        where s.IsDeleted == false 
+                        where s.Id == id
+                        select new SongProfileDto
+                        {
+                            Id = s.Id,
+                            Image = s.Img,
+                            Name = s.Name,
+                            Source = s.Source,
+                            DurationTime = s.DurationTime,
+                            CreateAt = s.CreatedAt,
+                            UserId = s.UserId,
+                            User = new UserProfileDto() { }
+                        }).FirstOrDefault();
+
+            qure.User = _userService.GetUserById(qure.UserId).Result.Content;
+
+            return Payload<SongProfileDto>.Successfully(qure, SongResource.GETSUCCESS);
         }
 
         public async Task<Payload<Song>> Insert(SongInsertDto request)
