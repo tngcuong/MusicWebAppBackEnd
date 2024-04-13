@@ -6,6 +6,7 @@ using MusicWebAppBackend.Infrastructure.ViewModels.PlayList;
 using MusicWebAppBackend.Infrastructure.Models.Const;
 using MusicWebAppBackend.Infrastructure.Mappers.Config;
 using MusicWebAppBackend.Infrastructure.Models.Paging;
+using MusicWebAppBackend.Infrastructure.ViewModels.User;
 
 namespace MusicWebAppBackend.Services
 {
@@ -26,15 +27,18 @@ namespace MusicWebAppBackend.Services
         public IRepository<Song> _songRepository;
         public ISongService _songService;
         public IFileService _fileService;
+        public IUserService _userService;
         public PlayListService(IRepository<PLaylist> playListRepository,
             IRepository<User> userRepository,
             IRepository<Song> songRepository,
             IFileService fileService,
-            ISongService songService) 
+            ISongService songService,
+            IUserService userService) 
         {
             _songRepository = songRepository;
             _fileService = fileService;
             _songService = songService;
+            _userService = userService;
            _playListRepository = playListRepository;
             _userRepository = userRepository;
         }
@@ -49,9 +53,12 @@ namespace MusicWebAppBackend.Services
                             Name = s.Name,
                             IsPrivate = s.IsPrivate,
                             CreateAt = s.CreatedAt,
-                            CreateBy = s.UserId,
+                            CreateById = s.UserId,
+                            CreateBy = new UserProfileDto(),
                             SongList = new List<SongProfileDto>()
                         }).FirstOrDefault();
+
+            qure.CreateBy = _userService.GetUserById(qure.CreateById).Result.Content;
 
             foreach (var item in _playListRepository.GetByIdAsync(id).Result.Songs)
             {
@@ -71,13 +78,16 @@ namespace MusicWebAppBackend.Services
                             Id = s.Id,
                             Thumbnail = s.Thumbnail,
                             Name = s.Name,
-                            CreateBy= s.UserId,
+                            CreateById = s.UserId,
+                            CreateBy = new UserProfileDto(),
                             CreateAt = s.CreatedAt,
                             IsPrivate= s.IsPrivate,
                             SongList = new List<SongProfileDto>()
                         }).ToList();
             foreach (var listItem in qure)
             {
+                listItem.CreateBy = _userService.GetUserById(listItem.CreateById).Result.Content;
+
                 foreach (var item in _playListRepository.GetByIdAsync(listItem.Id).Result.Songs)
                 {
                     listItem.SongList.Add(_songService.GetById(item).Result.Content);

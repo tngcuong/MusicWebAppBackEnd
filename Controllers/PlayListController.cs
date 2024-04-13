@@ -43,9 +43,9 @@ namespace MusicWebAppBackend.Controllers
 
         }
 
-        [Route(nameof(GetAllAlbum))]
+        [Route(nameof(GetAllPlayList))]
         [HttpGet]
-        public async Task<ActionResult> GetAllAlbum(int pageIndex, int pageSize)
+        public async Task<ActionResult> GetAllPlayList(int pageIndex, int pageSize)
         {
             var data = await _playListService.GetPlayList(pageIndex, pageSize);
             return StatusCode((int)data.ErrorCode, data);
