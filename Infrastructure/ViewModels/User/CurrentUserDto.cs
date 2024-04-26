@@ -1,6 +1,6 @@
 ﻿namespace MusicWebAppBackend.Infrastructure.ViewModels.User
 {
-    public class UserProfileDto
+    public class CurrentUserDto
     {
         public string Id { get; set; }
         public string Avatar { get; set; }
@@ -8,6 +8,5 @@
         public string Username { get; set; }
         public string Email { get; set; }
         public string Role { get; set; }
-        public List<string> ListSong { get; set; } = new List<string>();
     }
 }

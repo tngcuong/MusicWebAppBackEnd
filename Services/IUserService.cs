@@ -9,6 +9,7 @@ using MusicWebAppBackend.Infrastructure.Models.Data;
 using MusicWebAppBackend.Infrastructure.Models.Paging;
 using MusicWebAppBackend.Infrastructure.ViewModels;
 using MusicWebAppBackend.Infrastructure.ViewModels.Account;
+using MusicWebAppBackend.Infrastructure.ViewModels.Song;
 using MusicWebAppBackend.Infrastructure.ViewModels.User;
 using System.Data;
 using System.Diagnostics;
@@ -23,10 +24,12 @@ namespace MusicWebAppBackend.Services
         Task<Payload<User>> Insert(InsertUserDto request);
         Task<Payload<UpdateUserDto>> UpdateUserById(string id, UpdateUserDto user);
         Task<Payload<User>> RemoveUserById(String id);
+       
     }
 
     public class UserService : IUserService
     {
+        //private readonly ISongService _songService;
         private readonly IFileService _fileService;
         private readonly IRoleService _roleService;
         private readonly IRepository<User> _userRepository;
@@ -34,8 +37,11 @@ namespace MusicWebAppBackend.Services
         public UserService( IRepository<User> userRepository,
             IFileService fileService,
             IRoleService roleService,
-            IRepository<Role> roleRepository) 
+            IRepository<Role> roleRepository
+            //ISongService songService
+            ) 
         {
+            //_songService = songService;
             _roleRepository = roleRepository;
             _fileService = fileService;
             _userRepository = userRepository;
@@ -44,7 +50,7 @@ namespace MusicWebAppBackend.Services
 
         public async Task<Payload<UserProfileDto>> GetUserById(string id)
         {
-            var data =           from r in _roleRepository.Table
+            var data =  from r in _roleRepository.Table
                                   from u in _userRepository.Table
                                   where u.Id == id
                                   where r.Users.Contains(id)
@@ -55,7 +61,9 @@ namespace MusicWebAppBackend.Services
                                       Avatar = u.Avatar,
                                       Email = u.Email,
                                       Name = u.Name,
-                                      Role = r.Name
+                                      Role = r.Name,
+                                      ListSong = new List<string> (u.LikedSong) 
+                                      
                                   };
 
             if(!data.Any() || data == null) 
@@ -210,5 +218,7 @@ namespace MusicWebAppBackend.Services
             }, UserResource.GETUSERSUCCESSFUL);
 
         }
+
+      
     }
 }

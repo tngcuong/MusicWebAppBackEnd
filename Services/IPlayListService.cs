@@ -17,7 +17,8 @@ namespace MusicWebAppBackend.Services
         Task<Payload<PLaylist>> InsertAPlayList(InsertPlayListDto request);
         Task<Payload<PlayListProfileDto>> InsertSongToPlayList(UpdateSongToPlayListDto request);
         void Update(string id, PLaylist PlayList); 
-        Task<Payload<PLaylist>> RemoveUserById(String id);
+        Task<Payload<IList<PlayListProfileDto>>> GetByUserId(string id);
+
     }
 
     public class PlayListService : IPlayListService
@@ -67,6 +68,35 @@ namespace MusicWebAppBackend.Services
 
             return Payload<PlayListProfileDto>.Successfully(qure,PlayListResource.GETSUCCESS);
 
+        }
+
+        public async Task<Payload<IList<PlayListProfileDto>>> GetByUserId(string id)
+        {
+            var qure = (from s in _playListRepository.Table
+                        where s.IsDeleted == false && s.UserId == id
+                        select new PlayListProfileDto
+                        {
+                            Id = s.Id,
+                            Thumbnail = s.Thumbnail,
+                            Name = s.Name,
+                            IsPrivate = s.IsPrivate,
+                            CreateAt = s.CreatedAt,
+                            CreateById = s.UserId,
+                            CreateBy = new UserProfileDto(),
+                            SongList = new List<SongProfileDto>()
+                        }).ToList();
+
+            foreach (var listItem in qure)
+            {
+                listItem.CreateBy = _userService.GetUserById(listItem.CreateById).Result.Content;
+
+                foreach (var item in _playListRepository.GetByIdAsync(listItem.Id).Result.Songs)
+                {
+                    listItem.SongList.Add(_songService.GetById(item).Result.Content);
+                }
+            }
+
+            return Payload<IList<PlayListProfileDto>>.Successfully(qure, PlayListResource.GETSUCCESS);
         }
 
         public async Task<Payload<object>> GetPlayList(int pageIndex, int pageSize)
@@ -138,6 +168,9 @@ namespace MusicWebAppBackend.Services
 
             foreach (var item in request.IdSong)
             {
+                if (playlist.Songs.Contains(item)){
+                    return Payload<PlayListProfileDto>.UpdatedFail();
+                }
                 playlist.Songs.Add(item);
             }
             await _playListRepository.UpdateAsync(playlist);
@@ -150,14 +183,11 @@ namespace MusicWebAppBackend.Services
             return Payload<PlayListProfileDto>.Successfully(playListDto);
         }
 
-        public Task<Payload<PLaylist>> RemoveUserById(string id)
-        {
-            throw new NotImplementedException();
-        }
-
         public void Update(string id, PLaylist PlayList)
         {
             throw new NotImplementedException();
         }
+
+      
     }
 }

@@ -26,7 +26,7 @@ namespace MusicWebAppBackend.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IConfiguration _configuration;
         private readonly IRoleService _roleService;
-
+       
         public TokenService(IConfiguration configuration,
               IHttpContextAccessor httpContextAccessor,
               IRepository<User> userRepository,

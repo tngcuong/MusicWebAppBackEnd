@@ -26,6 +26,7 @@ namespace MusicWebAppBackend.Extensions
             services.AddScoped<ISongService, SongService>();
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<ILikedSongService, LikedSongService>();
             services.AddScoped<DbContext>();
             return services;
         }

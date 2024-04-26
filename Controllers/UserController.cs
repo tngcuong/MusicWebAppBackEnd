@@ -68,15 +68,15 @@ namespace MusicWebAppBackend.Controllers
             return StatusCode((int)data.ErrorCode, data);
         }
 
-        [Authorize]
         [Route(nameof(GetCurrentUser))]
-        [HttpPost]
-        public async Task<ActionResult> GetCurrentUser([FromBody]string token)
+        [HttpGet]
+        public async Task<ActionResult> GetCurrentUser()
         {
-            var data = await _tokenService.ValidateToken(token);
+            var id = HttpContext.User.Claims.FirstOrDefault(x => x.Type == "id").Value;
+            var data = await _userService.GetUserById(id);
             return StatusCode((int)data.ErrorCode, data);
         }
 
-
+     
     }
 }

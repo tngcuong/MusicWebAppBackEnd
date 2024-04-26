@@ -2,17 +2,17 @@
 {
     public class EmptyFormFile : IFormFile
     {
-        public string ContentType => throw new NotImplementedException();
+        public string ContentType => "";
 
         public string ContentDisposition => throw new NotImplementedException();
 
         public IHeaderDictionary Headers => throw new NotImplementedException();
 
-        public long Length => throw new NotImplementedException();
+        public long Length => 0;
 
-        public string Name => throw new NotImplementedException();
+        public string Name => "";
 
-        public string FileName => throw new NotImplementedException();
+        public string FileName => "";
 
         public void CopyTo(Stream target)
         {

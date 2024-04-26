@@ -31,7 +31,14 @@ namespace MusicWebAppBackend.Controllers
         {
             var data = await _playListService.GetById(id);
             return StatusCode((int)data.ErrorCode, data);
+        }
 
+        [Route(nameof(GetPlayListByUserId))]
+        [HttpGet]
+        public async Task<ActionResult> GetPlayListByUserId(string id)
+        {
+            var data = await _playListService.GetByUserId(id);
+            return StatusCode((int)data.ErrorCode, data);
         }
 
         [Route(nameof(InsertSongToList))]
@@ -40,7 +47,6 @@ namespace MusicWebAppBackend.Controllers
         {
             var data = await _playListService.InsertSongToPlayList(request);
             return StatusCode((int)data.ErrorCode, data);
-
         }
 
         [Route(nameof(GetAllPlayList))]
@@ -49,7 +55,6 @@ namespace MusicWebAppBackend.Controllers
         {
             var data = await _playListService.GetPlayList(pageIndex, pageSize);
             return StatusCode((int)data.ErrorCode, data);
-
         }
     }
 }

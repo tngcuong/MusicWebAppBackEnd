@@ -35,6 +35,11 @@ namespace MusicWebAppBackend.Infrastructure.ViewModels
             return new Payload<T>(default, HttpStatusCode.Forbidden, string.IsNullOrEmpty(message) ? "Duplicated data!" : message);
         }
 
+        public static Payload<T> NoContent(string message = "")
+        {
+            return new Payload<T>(default, HttpStatusCode.NoContent, string.IsNullOrEmpty(message) ? "Have no data!" : message);
+        }
+
         public static Payload<T> Successfully(T data, string message = "")
         {
             return new Payload<T>(data, HttpStatusCode.OK, string.IsNullOrEmpty(message) ? "OK" : message);

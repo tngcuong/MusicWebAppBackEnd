@@ -6,5 +6,6 @@
         public const string NOUSERFOUND = "No users found.";
         public const string DELETESUCCESS = "Deleted.";
         public const string DUPLICATE = "Duplicated username.";
+        public const string LOGIN = "Please login first.";
     }
 }

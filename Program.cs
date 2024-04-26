@@ -40,11 +40,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
     });
-
 builder.Services.AddSession(options =>
 {
     options.Cookie.IsEssential = true;
-    options.IOTimeout = TimeSpan.FromMinutes(30);
+    options.IOTimeout = TimeSpan.FromDays(1);
 });
 
 builder.Services.AddSwaggerGen(a =>
@@ -85,8 +84,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseSession();
 app.UseHttpsRedirection();
+app.UseSession();
 app.UseCors(x => x.AllowAnyHeader()
       .AllowAnyMethod().AllowCredentials()
       .WithOrigins("http://localhost:3000"));
