@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using MusicWebAppBackend.Infrastructure.Models;
+using MusicWebAppBackend.Infrastructure.Models.Const;
 using MusicWebAppBackend.Infrastructure.Models.Data;
 using MusicWebAppBackend.Infrastructure.ViewModels;
 using Org.BouncyCastle.Asn1.Ocsp;
@@ -90,7 +91,12 @@ namespace MusicWebAppBackend.Services
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Expires = newRefreshToken.Expires
+                Domain = "localhost",
+                Path = "/", 
+                SameSite = SameSiteMode.None, 
+                Secure = true,
+                Expires = newRefreshToken.Expires,
+
             };
             _httpContextAccessor.HttpContext.Response.Cookies.Append("refreshToken", newRefreshToken.Token, cookieOptions);
 
@@ -112,14 +118,12 @@ namespace MusicWebAppBackend.Services
             }
             else if (user.TokenExpires < DateTime.Now)
             {
-                return Payload<Object>.BadRequest();
+                return Payload<Object>.BadRequest(UserResource.TOKENEXPIRED);
             }
 
             try
             {
                 string token = await CreateToken(user);
-                var newRefreshToken = await GenerateRefreshToken();
-                await SetRefreshToken(newRefreshToken, user);
                 var data = new
                 {
                     Token = token

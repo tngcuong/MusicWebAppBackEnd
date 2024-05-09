@@ -29,7 +29,7 @@ namespace MusicWebAppBackend.Controllers
         [HttpGet]
         public async Task<ActionResult> GetPlayListById(string id)
         {
-            var data = await _playListService.GetById(id);
+            var data = await _playListService.GetPlayListById(id);
             return StatusCode((int)data.ErrorCode, data);
         }
 
@@ -56,5 +56,7 @@ namespace MusicWebAppBackend.Controllers
             var data = await _playListService.GetPlayList(pageIndex, pageSize);
             return StatusCode((int)data.ErrorCode, data);
         }
+
+      
     }
 }

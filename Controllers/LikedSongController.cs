@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MusicWebAppBackend.Services;
+using System.Drawing.Printing;
 
 namespace MusicWebAppBackend.Controllers
 {
@@ -20,7 +21,7 @@ namespace MusicWebAppBackend.Controllers
         [HttpGet]
         public async Task<ActionResult> GetLikedSongById(string id)
         {
-            var data = await _likedSongService.GetLikedSongById(id);
+            var data = await _likedSongService.GetLikedSongByUserId(id);
             return StatusCode((int)data.ErrorCode, data);
         }
 
@@ -39,6 +40,24 @@ namespace MusicWebAppBackend.Controllers
         public async Task<ActionResult> RemoveSongToLikedSong([FromQuery] string idUser,[FromBody] string idSong)
         {
             var data = await _likedSongService.RemoveSongToLiked(idUser, idSong);
+            return StatusCode((int)data.ErrorCode, data);
+        }
+
+        [Route(nameof(GetMostLikedSongByUserId))]
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult> GetMostLikedSongByUserId(string id)
+        {
+            var data = await _likedSongService.GetMostLikedSongByUserId(id);
+            return StatusCode((int)data.ErrorCode, data);
+        }
+
+        [Route(nameof(GetLikedBySongId))]
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult> GetLikedBySongId(string id)
+        {
+            var data = await _likedSongService.GetLikedBySongId(id);
             return StatusCode((int)data.ErrorCode, data);
         }
     }

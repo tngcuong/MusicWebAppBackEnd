@@ -61,11 +61,12 @@ namespace MusicWebAppBackend.Controllers
             return  Ok(await _accountService.Logout(token));
         }
 
-        [HttpPost]
+        [HttpGet]
         [Route(nameof(RefreshToken))]
-        public async Task<ActionResult> RefreshToken(string id)
+        public async Task<ActionResult> RefreshToken()
         {
-            var data = await _tokenService.RefreshToken(id);
+            var idUser = HttpContext.User.Claims.FirstOrDefault(x => x.Type == "id").Value;
+            var data = await _tokenService.RefreshToken(idUser);
             return StatusCode((int)data.ErrorCode, data);
         }
 

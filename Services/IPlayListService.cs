@@ -13,7 +13,7 @@ namespace MusicWebAppBackend.Services
     public interface IPlayListService
     {
         Task<Payload<Object>> GetPlayList(int pageIndex, int pageSize);
-        Task<Payload<PlayListProfileDto>> GetById(string id);
+        Task<Payload<PlayListProfileDto>> GetPlayListById(string id);
         Task<Payload<PLaylist>> InsertAPlayList(InsertPlayListDto request);
         Task<Payload<PlayListProfileDto>> InsertSongToPlayList(UpdateSongToPlayListDto request);
         void Update(string id, PLaylist PlayList); 
@@ -43,7 +43,7 @@ namespace MusicWebAppBackend.Services
            _playListRepository = playListRepository;
             _userRepository = userRepository;
         }
-        public async Task<Payload<PlayListProfileDto>> GetById(string id)
+        public async Task<Payload<PlayListProfileDto>> GetPlayListById(string id)
         {
             var qure = (from s in _playListRepository.Table
                         where s.IsDeleted == false && s.Id == id

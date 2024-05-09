@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Azure;
+using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
@@ -152,7 +153,7 @@ namespace MusicWebAppBackend.Services
 
         public async Task<Payload<EmailRegisterDto>> SendMailRegister(string mail)
         {
-            _httpContextAccessor.HttpContext.Session.Clear();
+            _httpContextAccessor.HttpContext.Response.Cookies.Delete("OTP");
             var emailContent = new EmailContent()
             {
                 Code = RenderRandomCode.GenerateRandomSixDigitNumber(),
@@ -169,10 +170,19 @@ namespace MusicWebAppBackend.Services
             });
 
             await _configMail.SetContent(mail, AccountResource.REGISTITLE, emailHTML);
-            var expiryTime = DateTime.Now.AddMinutes(5);
 
-            _httpContextAccessor.HttpContext.Session.SetString("OTP", emailContent.Code.ToString());
-            _httpContextAccessor.HttpContext.Session.SetString("OTPExpiryTime", expiryTime.ToString());
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Domain = "localhost",
+                Path = "/",
+                SameSite = SameSiteMode.None,
+                Secure = true,
+                Expires = DateTimeOffset.Now.AddMinutes(3),
+
+            };
+            _httpContextAccessor.HttpContext.Response.Cookies.Append("OTP", emailContent.Code.ToString(), cookieOptions);
+
             return Payload<EmailRegisterDto>.Successfully(new EmailRegisterDto { Email = mail });
         }
 
@@ -197,16 +207,14 @@ namespace MusicWebAppBackend.Services
 
         public async Task<Payload<User>> VerifyEmail(VerifyDto request)
         {
-            var OTPExpiryTime = _httpContextAccessor.HttpContext.Session.GetString("OTPExpiryTime");
-            var storedOTP = _httpContextAccessor.HttpContext.Session.GetString("OTP");
-            if (storedOTP == null || storedOTP != request.OTP)
-                return Payload<User>.BadRequest(AccountResource.WRONGOTP);
-
-            if (DateTime.Now > DateTime.Parse(OTPExpiryTime))
+            var OTP = _httpContextAccessor.HttpContext.Request.Cookies["OTP"];
+            if(OTP == null)
             {
-                _httpContextAccessor.HttpContext.Session.Clear();
                 return Payload<User>.BadRequest(AccountResource.EXPRIREOTP);
             }
+
+            if ( OTP != request.OTP)
+                return Payload<User>.BadRequest(AccountResource.WRONGOTP);
 
             User user = new User
             {
@@ -222,7 +230,7 @@ namespace MusicWebAppBackend.Services
             await _roleRepositoty.UpdateAsync(role);
 
             await _accountRepositoty.InsertAsync(user);
-            _httpContextAccessor.HttpContext.Session.Clear();
+            _httpContextAccessor.HttpContext.Response.Cookies.Delete("OTP");
             return Payload<User>.Successfully(user, AccountResource.SUCCESSREGIS);
         }
     }

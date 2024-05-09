@@ -16,6 +16,7 @@ namespace MusicWebAppBackend.Services
     public interface ISongService
     {
         Task<Payload<Object>> GetSong(int pageIndex, int pageSize);
+        Task<Payload<Object>> GetSongDescendingById(string id ,int pageIndex, int pageSize);
         Task<Payload<SongProfileDto>> GetById(string id);
         Task<Payload<Song>> Insert(SongInsertDto request);
         void Update(string id, Song song);
@@ -93,6 +94,11 @@ namespace MusicWebAppBackend.Services
                             User = new UserProfileDto() { }
                         }).FirstOrDefault();
 
+            if(qure == null )
+            {
+                return Payload<SongProfileDto>.NoContent(SongResource.NOSONGFOUND);
+            }
+
             qure.User = _userService.GetUserById(qure.UserId).Result.Content;
 
             return Payload<SongProfileDto>.Successfully(qure, SongResource.GETSUCCESS);
@@ -143,6 +149,43 @@ namespace MusicWebAppBackend.Services
             await _songRepository.UpdateAsync(song);
             return Payload<Song>.Successfully(song, SongResource.DELETESUCCESS);
         }
-     
+
+        public async Task<Payload<object>> GetSongDescendingById(string id, int pageIndex, int pageSize)
+        {
+            var qure = (from s in _songRepository.Table
+                        where s.IsDeleted == false && s.UserId == id
+                        orderby s.CreatedAt descending
+                        select new SongProfileDto
+                        {
+                            Id = s.Id,
+                            Image = s.Img,
+                            Name = s.Name,
+                            Source = s.Source,
+                            DurationTime = s.DurationTime,
+                            CreateAt = s.CreatedAt,
+                            UserId = s.UserId,
+                            User = new UserProfileDto() { }
+                        }).ToList();
+
+            foreach (var item in qure)
+            {
+                item.User = _userService.GetUserById(item.UserId).Result.Content;
+            }
+
+            var pageList = await PageList<SongProfileDto>.Create(qure.AsQueryable(), pageIndex, pageSize);
+
+            if (pageList.Count == 0)
+            {
+                return Payload<Object>.NotFound(SongResource.NOSONGFOUND);
+            }
+
+            return Payload<Object>.Successfully(new
+            {
+                Data = pageList,
+                PageIndex = pageIndex,
+                Total = qure.Count(),
+                TotalPages = pageList.totalPages
+            }, SongResource.GETSUCCESS);
+        }
     }
 }

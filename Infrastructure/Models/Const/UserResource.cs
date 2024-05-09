@@ -7,5 +7,6 @@
         public const string DELETESUCCESS = "Deleted.";
         public const string DUPLICATE = "Duplicated username.";
         public const string LOGIN = "Please login first.";
+        public const string TOKENEXPIRED = "Please login again.";
     }
 }

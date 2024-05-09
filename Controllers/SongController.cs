@@ -55,6 +55,13 @@ namespace MusicWebAppBackend.Controllers
             return StatusCode((int)data.ErrorCode, data);
         }
 
-      
+        [Route(nameof(GetSongDescendingByIdUser))]
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<ActionResult> GetSongDescendingByIdUser(string id, int pageIndex, int pageSize)
+        {
+            var data = await _songService.GetSongDescendingById(id, pageIndex, pageSize);
+            return StatusCode((int)data.ErrorCode, data);
+        }
     }
 }
