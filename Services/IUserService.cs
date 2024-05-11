@@ -19,6 +19,7 @@ namespace MusicWebAppBackend.Services
 {
     public interface IUserService
     {
+        Task<Payload<DetailUserDto>> GetDetailUserById(string id);
         Task<Payload<Object>> GetUser(int pageIndex, int pageSize);
         Task<Payload<UserProfileDto>> GetUserById(string id);
         Task<Payload<User>> Insert(InsertUserDto request);
@@ -35,43 +36,47 @@ namespace MusicWebAppBackend.Services
         private readonly IRoleService _roleService;
         private readonly IRepository<User> _userRepository;
         private readonly IRepository<Role> _roleRepository;
-        public UserService( IRepository<User> userRepository,
+        private readonly IRepository<Song> _songRepository;
+        public UserService(IRepository<User> userRepository,
             IFileService fileService,
             IRoleService roleService,
-            IRepository<Role> roleRepository
+            IRepository<Role> roleRepository,
+            IRepository<Song> songRepository
             //ISongService songService
-            ) 
+            )
         {
             //_songService = songService;
             _roleRepository = roleRepository;
+            _songRepository = songRepository;
             _fileService = fileService;
             _userRepository = userRepository;
             _roleService = roleService;
+
         }
 
         public async Task<Payload<UserProfileDto>> GetUserById(string id)
         {
-            var data =  from r in _roleRepository.Table
-                                  from u in _userRepository.Table
-                                  where u.Id == id
-                                  where r.Users.Contains(id)
-                                  where u.IsDeleted == false
-                                  select new UserProfileDto
-                                  {
-                                      Id = u.Id,
-                                      Avatar = u.Avatar,
-                                      Email = u.Email,
-                                      Name = u.Name,
-                                      Role = r.Name,
-                                      ListSong = new List<string>(u.LikedSong)
-                                  };
+            var data = from r in _roleRepository.Table
+                       from u in _userRepository.Table
+                       where u.Id == id
+                       where r.Users.Contains(id)
+                       where u.IsDeleted == false
+                       select new UserProfileDto
+                       {
+                           Id = u.Id,
+                           Avatar = u.Avatar,
+                           Email = u.Email,
+                           Name = u.Name,
+                           Role = r.Name,
+                           ListSong = new List<string>(u.LikedSong)
+                       };
 
-            if(!data.Any() || data == null) 
+            if (!data.Any() || data == null)
             {
                 return Payload<UserProfileDto>.NotFound(UserResource.NOUSERFOUND);
             }
 
-            return Payload<UserProfileDto>.Successfully(data.FirstOrDefault(),UserResource.GETUSERSUCCESSFUL);
+            return Payload<UserProfileDto>.Successfully(data.FirstOrDefault(), UserResource.GETUSERSUCCESSFUL);
         }
 
         public async Task<Payload<User>> Insert(InsertUserDto request)
@@ -98,7 +103,7 @@ namespace MusicWebAppBackend.Services
             }
 
             var roleData = await _roleService.GetRoleByName(request.Role);
-            
+
             if ((int)roleData.ErrorCode != 200)
             {
                 return Payload<User>.ErrorInProcessing(RoleResource.NOTFOUND);
@@ -124,7 +129,7 @@ namespace MusicWebAppBackend.Services
         public async Task<Payload<User>> RemoveUserById(string id)
         {
             var user = await _userRepository.GetByIdAsync(id);
-            if(user == null)
+            if (user == null)
             {
                 return Payload<User>.ErrorInProcessing(UserResource.NOUSERFOUND);
             }
@@ -149,7 +154,7 @@ namespace MusicWebAppBackend.Services
                 return Payload<UpdateUserDto>.BadRequest(AccountResource.FVALIDPASSWORD);
             }
             var entity = await _userRepository.GetByIdAsync(id);
-            if(entity == null)
+            if (entity == null)
             {
                 return Payload<UpdateUserDto>.NotFound(UserResource.NOUSERFOUND);
             }
@@ -157,13 +162,13 @@ namespace MusicWebAppBackend.Services
                                 where u.UserName.Equals(user.Username)
                                 && u.IsDeleted == false && !u.Id.Equals(id)
                                 select u.UserName;
-            if(existUsername.Any()) 
+            if (existUsername.Any())
             {
                 return Payload<UpdateUserDto>.Dublicated();
             }
 
             var roleData = await _roleService.GetRoleByName(user.Role);
-            
+
             if ((int)roleData.ErrorCode != 200)
             {
                 return Payload<UpdateUserDto>.ErrorInProcessing(RoleResource.NOTFOUND);
@@ -176,7 +181,7 @@ namespace MusicWebAppBackend.Services
                 roleEntity.Content.Users.Remove(id);
                 await _roleRepository.UpdateAsync(roleEntity.Content);
                 Role role = roleData.Content;
-             
+
                 role.Users.Add(userUpdate.Id);
                 await _roleRepository.UpdateAsync(role);
             }
@@ -189,18 +194,18 @@ namespace MusicWebAppBackend.Services
         public async Task<Payload<Object>> GetUser(int pageIndex, int pageSize)
         {
             var qure = (from r in _roleRepository.Table
-                       from u in _userRepository.Table
-                       where r.Users.Contains(u.Id)
-                       where u.IsDeleted == false
-                       select  new UserProfileDto
-                       {
-                           Id = u.Id,
-                           Avatar = u.Avatar,
-                           Email = u.Email,
-                           Username = u.UserName,
-                           Name = u.Name,
-                           Role = r.Name
-                       });
+                        from u in _userRepository.Table
+                        where r.Users.Contains(u.Id)
+                        where u.IsDeleted == false
+                        select new UserProfileDto
+                        {
+                            Id = u.Id,
+                            Avatar = u.Avatar,
+                            Email = u.Email,
+                            Username = u.UserName,
+                            Name = u.Name,
+                            Role = r.Name
+                        });
 
             var pageList = await PageList<UserProfileDto>.Create(qure, pageIndex, pageSize);
 
@@ -224,7 +229,7 @@ namespace MusicWebAppBackend.Services
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null)
             {
-                return Payload<IList<UserProfileDto>>.NotFound(UserResource.NOUSERFOUND); 
+                return Payload<IList<UserProfileDto>>.NotFound(UserResource.NOUSERFOUND);
             }
 
             if (user.Follower.Count < 1)
@@ -233,12 +238,47 @@ namespace MusicWebAppBackend.Services
             }
 
             IList<UserProfileDto> result = new List<UserProfileDto>();
-            foreach( var item in user.Follower)
+            foreach (var item in user.Follower)
             {
                 result.Add(GetUserById(item).Result.Content);
             }
 
             return Payload<IList<UserProfileDto>>.Successfully(result);
+        }
+
+        public async Task<Payload<DetailUserDto>> GetDetailUserById(string id)
+        {
+            var data = (from r in _roleRepository.Table
+                        from u in _userRepository.Table
+                        where u.Id == id
+                        where r.Users.Contains(id)
+                        where u.IsDeleted == false
+                        select new DetailUserDto
+                        {
+                            Id = u.Id,
+                            Avatar = u.Avatar,
+                            Email = u.Email,
+                            Name = u.Name,
+                            Role = r.Name,
+                            ListSong = new List<string>(u.LikedSong),
+                            Followers = new List<string>(u.Follower)
+                        }).FirstOrDefault();
+
+            data.Following = _userRepository.Table.Where(u => u.Id != id).SelectMany(u => u.Follower)
+                        .Count(user => user == id);
+
+            data.Tracks = (
+                from s in _songRepository.Table
+                where s.UserId == id
+                select s.Id
+                ).ToList();
+
+            if (data == null)
+            {
+                return Payload<DetailUserDto>.NotFound(UserResource.NOUSERFOUND);
+            }
+
+            return Payload<DetailUserDto>.Successfully(data, UserResource.GETUSERSUCCESSFUL);
         }
     }
 }

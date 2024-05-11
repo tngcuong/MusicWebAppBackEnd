@@ -68,7 +68,7 @@ namespace MusicWebAppBackend.Controllers
         public async Task<ActionResult> GetCollectionByUserId(UserCollections collections, string id)
         {
             var data = await _likedSongService.GetCollectionUser(collections, id);
-            return StatusCode(200, data);
+            return StatusCode((int)data.ErrorCode, data);
         }
     }
 }

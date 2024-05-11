@@ -142,13 +142,11 @@ namespace MusicWebAppBackend.Services
                 }
             }
 
-            // Sắp xếp danh sách theo số lượt thích giảm dần
             var topLikedSongIds = songLikesCount.OrderByDescending(pair => pair.Value)
                                                 .Select(pair => pair.Key)
                                                 .Take(5)
                                                 .ToList();
 
-            // Lấy thông tin chi tiết của các bài hát được like nhiều nhất
             var topLikedSongs = _songRepository.Table
                                                .Where(song => topLikedSongIds.Contains(song.Id) && song.UserId == id) // Giả sử Id của bài hát được lưu trong field Id của đối tượng Song
                                                .ToList();
@@ -240,11 +238,9 @@ namespace MusicWebAppBackend.Services
                     return Payload<IList<Object>>.Successfully(objectList3);
 
                 default:
-                    // Xử lý trường hợp mặc định (nếu có)
+                    return Payload<IList<Object>>.NotFound();
                     break;
             }
-
-            return Payload<IList<Object>>.BadRequest();
         }
     }
 }
