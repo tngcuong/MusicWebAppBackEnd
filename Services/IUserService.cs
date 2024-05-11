@@ -24,7 +24,8 @@ namespace MusicWebAppBackend.Services
         Task<Payload<User>> Insert(InsertUserDto request);
         Task<Payload<UpdateUserDto>> UpdateUserById(string id, UpdateUserDto user);
         Task<Payload<User>> RemoveUserById(String id);
-       
+        Task<Payload<IList<UserProfileDto>>> GetFollowerByUserId(String id);
+
     }
 
     public class UserService : IUserService
@@ -62,8 +63,7 @@ namespace MusicWebAppBackend.Services
                                       Email = u.Email,
                                       Name = u.Name,
                                       Role = r.Name,
-                                      ListSong = new List<string> (u.LikedSong) 
-                                      
+                                      ListSong = new List<string>(u.LikedSong)
                                   };
 
             if(!data.Any() || data == null) 
@@ -219,6 +219,26 @@ namespace MusicWebAppBackend.Services
 
         }
 
-      
+        public async Task<Payload<IList<UserProfileDto>>> GetFollowerByUserId(string id)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null)
+            {
+                return Payload<IList<UserProfileDto>>.NotFound(UserResource.NOUSERFOUND); 
+            }
+
+            if (user.Follower.Count < 1)
+            {
+                return Payload<IList<UserProfileDto>>.NoContent(UserResource.NOFOLLOWER);
+            }
+
+            IList<UserProfileDto> result = new List<UserProfileDto>();
+            foreach( var item in user.Follower)
+            {
+                result.Add(GetUserById(item).Result.Content);
+            }
+
+            return Payload<IList<UserProfileDto>>.Successfully(result);
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace MusicWebAppBackend.Infrastructure.Enum
+﻿namespace MusicWebAppBackend.Infrastructure.EnumTypes
 {
     public enum InputDataTypes
     {

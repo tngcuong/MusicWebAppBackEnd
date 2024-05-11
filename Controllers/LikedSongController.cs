@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MusicWebAppBackend.Infrastructure.EnumTypes;
 using MusicWebAppBackend.Services;
 using System.Drawing.Printing;
 
@@ -59,6 +60,15 @@ namespace MusicWebAppBackend.Controllers
         {
             var data = await _likedSongService.GetLikedBySongId(id);
             return StatusCode((int)data.ErrorCode, data);
+        }
+
+        [Route(nameof(GetCollectionByUserId))]
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult> GetCollectionByUserId(UserCollections collections, string id)
+        {
+            var data = await _likedSongService.GetCollectionUser(collections, id);
+            return StatusCode(200, data);
         }
     }
 }

@@ -7,6 +7,7 @@ using MusicWebAppBackend.Infrastructure.Models.Const;
 using MusicWebAppBackend.Infrastructure.Mappers.Config;
 using MusicWebAppBackend.Infrastructure.Models.Paging;
 using MusicWebAppBackend.Infrastructure.ViewModels.User;
+using MusicWebAppBackend.Infrastructure.EnumTypes;
 
 namespace MusicWebAppBackend.Services
 {
@@ -16,9 +17,9 @@ namespace MusicWebAppBackend.Services
         Task<Payload<PlayListProfileDto>> GetPlayListById(string id);
         Task<Payload<PLaylist>> InsertAPlayList(InsertPlayListDto request);
         Task<Payload<PlayListProfileDto>> InsertSongToPlayList(UpdateSongToPlayListDto request);
-        void Update(string id, PLaylist PlayList); 
+        void Update(string id, PLaylist PlayList);
         Task<Payload<IList<PlayListProfileDto>>> GetByUserId(string id);
-
+        Task<Payload<IList<PlayListProfileDto>>> GetLikedPlayListByUserId(String id);
     }
 
     public class PlayListService : IPlayListService
@@ -34,13 +35,13 @@ namespace MusicWebAppBackend.Services
             IRepository<Song> songRepository,
             IFileService fileService,
             ISongService songService,
-            IUserService userService) 
+            IUserService userService)
         {
             _songRepository = songRepository;
             _fileService = fileService;
             _songService = songService;
             _userService = userService;
-           _playListRepository = playListRepository;
+            _playListRepository = playListRepository;
             _userRepository = userRepository;
         }
         public async Task<Payload<PlayListProfileDto>> GetPlayListById(string id)
@@ -59,6 +60,11 @@ namespace MusicWebAppBackend.Services
                             SongList = new List<SongProfileDto>()
                         }).FirstOrDefault();
 
+            if(qure == null) 
+            {
+                return Payload<PlayListProfileDto>.NoContent( PlayListResource.NOALBUMFOUND);
+            }
+
             qure.CreateBy = _userService.GetUserById(qure.CreateById).Result.Content;
 
             foreach (var item in _playListRepository.GetByIdAsync(id).Result.Songs)
@@ -66,7 +72,7 @@ namespace MusicWebAppBackend.Services
                 qure.SongList.Add(_songService.GetById(item).Result.Content);
             }
 
-            return Payload<PlayListProfileDto>.Successfully(qure,PlayListResource.GETSUCCESS);
+            return Payload<PlayListProfileDto>.Successfully(qure, PlayListResource.GETSUCCESS);
 
         }
 
@@ -111,7 +117,7 @@ namespace MusicWebAppBackend.Services
                             CreateById = s.UserId,
                             CreateBy = new UserProfileDto(),
                             CreateAt = s.CreatedAt,
-                            IsPrivate= s.IsPrivate,
+                            IsPrivate = s.IsPrivate,
                             SongList = new List<SongProfileDto>()
                         }).ToList();
             foreach (var listItem in qure)
@@ -123,7 +129,7 @@ namespace MusicWebAppBackend.Services
                     listItem.SongList.Add(_songService.GetById(item).Result.Content);
                 }
             }
-           
+
             var pageList = await PageList<PlayListProfileDto>.Create(qure.AsQueryable(), pageIndex, pageSize);
 
             if (pageList.Count == 0)
@@ -168,7 +174,8 @@ namespace MusicWebAppBackend.Services
 
             foreach (var item in request.IdSong)
             {
-                if (playlist.Songs.Contains(item)){
+                if (playlist.Songs.Contains(item))
+                {
                     return Payload<PlayListProfileDto>.UpdatedFail();
                 }
                 playlist.Songs.Add(item);
@@ -188,6 +195,26 @@ namespace MusicWebAppBackend.Services
             throw new NotImplementedException();
         }
 
-      
+        public async Task<Payload<IList<PlayListProfileDto>>> GetLikedPlayListByUserId(string id)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null)
+            {
+                return Payload<IList<PlayListProfileDto>>.NotFound(PlayListResource.NOALBUMFOUND);
+            }
+
+            if (user.LikedPlayList.Count < 1)
+            {
+                return Payload<IList<PlayListProfileDto>>.NoContent(UserResource.NOLIKEDPLAYLIST);
+            }
+
+            IList<PlayListProfileDto> result = new List<PlayListProfileDto>();
+            foreach (var item in user.LikedPlayList)
+            {
+                result.Add(GetPlayListById(item).Result.Content);
+            }
+
+            return Payload<IList<PlayListProfileDto>>.Successfully(result);
+        }
     }
 }

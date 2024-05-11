@@ -12,6 +12,7 @@ namespace MusicWebAppBackend.Infrastructure.Models
         public string UserName { get; set; }
         public IList<string>? LikedSong { get; set; } = new List<string>();
         public IList<string>? Follower { get; set; } = new List<string>();
+        public IList<string>? LikedPlayList { get; set; } = new List<string>();
         public string Password { get; set; }
         public string? RefreshToken { get; set; } = string.Empty;
         public DateTime? TokenCreated { get; set; }
