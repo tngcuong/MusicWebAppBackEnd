@@ -44,7 +44,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin",
-        builder => builder.WithOrigins("http://localhost:3000").AllowCredentials().WithHeaders().AllowAnyMethod().AllowAnyHeader());
+        builder => builder.WithOrigins("http://localhost:3000").AllowCredentials().AllowAnyMethod().AllowAnyHeader());
 });
 builder.Services.AddSession(options =>
 {
@@ -84,6 +84,7 @@ builder.Services.AddSwaggerGen(a =>
 builder.Services.AddMvc();
 var app = builder.Build();
 
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -95,8 +96,12 @@ app.UseSession();
 app.UseCors("AllowSpecificOrigin");
 app.UseAuthentication();
 
-app.UseAuthorization();
+app.UseDefaultFiles();
 
+app.UseStaticFiles();
+
+app.UseRouting();
+app.UseAuthorization();
 app.MapControllers();
 
 app.Run();

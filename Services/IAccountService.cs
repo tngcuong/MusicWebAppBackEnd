@@ -12,8 +12,10 @@ using MusicWebAppBackend.Infrastructure.Mappers.MapingExtensions;
 using MusicWebAppBackend.Infrastructure.Models;
 using MusicWebAppBackend.Infrastructure.Models.Const;
 using MusicWebAppBackend.Infrastructure.Models.Data;
+using MusicWebAppBackend.Infrastructure.Utils;
 using MusicWebAppBackend.Infrastructure.ViewModels;
 using MusicWebAppBackend.Infrastructure.ViewModels.Account;
+using MusicWebAppBackend.Infrastructure.ViewModels.Song;
 using MusicWebAppBackend.Infrastructure.ViewModels.User;
 using NuGet.Common;
 using NuGet.Protocol;
@@ -34,6 +36,8 @@ namespace MusicWebAppBackend.Services
         Task<Payload<User>> VerifyEmail(VerifyDto request);
         Task<Payload<User>> ChangePasssord(string id, ChangePasswordDto request);
         Task<Payload<User>> UpdateInfo(UpdateAccountDto request);
+        Task<Payload<UserProfileDto>> UpdateCoverAvartar (UpdateCoverAvatarDto request);
+        Task<Payload<UserProfileDto>> UpdateAvartar(UpdateAvatarDto request);
     }
 
     public class AccountService : IAccountService
@@ -64,6 +68,27 @@ namespace MusicWebAppBackend.Services
             _configMail = configMail;
             _roleService = roleService;
             _roleRepositoty = roleRepositoty;
+        }
+
+        public async Task<Payload<UserProfileDto>> UpdateAvartar(UpdateAvatarDto request)
+        {
+            User user = await _accountRepositoty.GetByIdAsync(request.Id);
+            if (user == null)
+            {
+                return Payload<UserProfileDto>.BadRequest(AccountResource.NOTFOUND);
+            }
+            IFormFile Avatar = await _fileService.SetImage(request.Avatar, request.Id);
+            if (Avatar.Length < 1 || Avatar == null || Avatar is EmptyFormFile)
+            {
+                return Payload<UserProfileDto>.BadRequest(FileResource.IMAGEFVALID);
+            }
+
+            request.Avatar = Avatar;
+            User userUpdated = request.MapTo<UpdateAvatarDto, User>(user);
+            await _accountRepositoty.UpdateAsync(userUpdated);
+
+            UserProfileDto userDto = user.ToEntity();
+            return Payload<UserProfileDto>.Successfully(userDto, AccountResource.UPDATEAVATARSUCCESS);
         }
 
         public async Task<Payload<User>> ChangePasssord(string id, ChangePasswordDto request)
@@ -186,6 +211,27 @@ namespace MusicWebAppBackend.Services
             return Payload<EmailRegisterDto>.Successfully(new EmailRegisterDto { Email = mail });
         }
 
+        public async Task<Payload<UserProfileDto>> UpdateCoverAvartar(UpdateCoverAvatarDto request)
+        {
+            User user = await _accountRepositoty.GetByIdAsync(request.Id);
+            if (user == null)
+            {
+                return Payload<UserProfileDto>.BadRequest(AccountResource.NOTFOUND);
+            }
+            IFormFile CoverAvatar = await _fileService.SetImage(request.CoverAvatar, request.Id);
+            if (CoverAvatar.Length < 1 || CoverAvatar == null || CoverAvatar is EmptyFormFile)
+            {
+                return Payload<UserProfileDto>.BadRequest(FileResource.IMAGEFVALID);
+            }
+
+            request.CoverAvatar = CoverAvatar;
+            User userUpdated = request.MapTo<UpdateCoverAvatarDto, User>(user);
+            await _accountRepositoty.UpdateAsync(userUpdated);
+
+            UserProfileDto userDto = user.ToEntity();
+            return Payload<UserProfileDto>.Successfully(userDto, AccountResource.UPDATECOVERAVATARSUCCESS);
+        }
+
         public async Task<Payload<User>> UpdateInfo(UpdateAccountDto request)
         {
             var user = _accountRepositoty.Table.FirstOrDefault(a => a.Id == request.Id);
@@ -223,6 +269,7 @@ namespace MusicWebAppBackend.Services
                 UserName = request.UserName,
                 Email = request.Email,
                 Password = PasswordHasher.HashPassword(request.Password),
+                CoverAvatar = GenerateRandomColor.GetRandomGradient()
             };
 
             Role role = await _roleService.GetRoleForUser();

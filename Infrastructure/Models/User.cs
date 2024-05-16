@@ -7,9 +7,10 @@ namespace MusicWebAppBackend.Infrastructure.Models
     {
         public string? Avatar {  get; set; }
         public string? Name { get; set; }
-        public string? Description { get; set; }
+        public string Description { get; set; } = string.Empty;
         public string Email { get; set; }
         public string UserName { get; set; }
+        public string? CoverAvatar { get; set; } = string.Empty;
         public IList<string>? LikedSong { get; set; } = new List<string>();
         public IList<string>? Follower { get; set; } = new List<string>();
         public IList<string>? LikedPlayList { get; set; } = new List<string>();

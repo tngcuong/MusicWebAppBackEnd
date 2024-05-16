@@ -20,5 +20,10 @@ namespace MusicWebAppBackend.Infrastructure.Mappers.MapingExtensions
         {
             return model.MapTo<UpdateAccountDto, User>();
         }
+
+        public static UserProfileDto ToEntity(this User model)
+        {
+            return model.MapTo<User, UserProfileDto>();
+        }
     }
 }

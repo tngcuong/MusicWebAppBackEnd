@@ -23,6 +23,14 @@ namespace MusicWebAppBackend.Infrastructure.Mappers
                .ForMember(x => x.Name, o => o.MapFrom(u => u.Name))
                .ForMember(x => x.Description, o => o.MapFrom(u => u.Description))
                .ForMember(x => x.Id, o => o.Ignore());
+
+            CreateMap<UpdateAvatarDto, User>()
+             .ForMember(x => x.Avatar, o => o.MapFrom(u => "https://musicwebapp.blob.core.windows.net/" + u.Id + "/" + u.Avatar.FileName))
+             .ForMember(x => x.Id, o => o.Ignore());
+
+            CreateMap<UpdateCoverAvatarDto, User>()
+            .ForMember(x => x.CoverAvatar, o => o.MapFrom(u => "https://musicwebapp.blob.core.windows.net/" + u.Id + "/" + u.CoverAvatar.FileName))
+            .ForMember(x => x.Id, o => o.Ignore());
         }
     }
 }

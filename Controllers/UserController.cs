@@ -77,13 +77,13 @@ namespace MusicWebAppBackend.Controllers
             return StatusCode((int)data.ErrorCode, data);
         }
 
-        //[AllowAnonymous]
-        //[Route(nameof(GetDetailUserById))]
-        //[HttpGet]
-        //public async Task<ActionResult> GetDetailUserById(string id)
-        //{
-        //    var data = await _userService.GetDetailUserById(id);
-        //    return StatusCode((int)data.ErrorCode, data);
-        //}
+        [AllowAnonymous]
+        [Route(nameof(GetFollowerByUserId))]
+        [HttpGet]
+        public async Task<ActionResult> GetFollowerByUserId(string id)
+        {
+            var data = await _userService.GetFollowerByUserId(id);
+            return StatusCode((int)data.ErrorCode, data);
+        }
     }
 }

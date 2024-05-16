@@ -57,6 +57,14 @@ namespace MusicWebAppBackend.Controllers
             return StatusCode((int)data.ErrorCode, data);
         }
 
-      
+        [Route(nameof(RemovePlayListById))]
+        [HttpDelete]
+        public async Task<ActionResult> RemovePlayListById(string id)
+        {
+            var data = await _playListService.RemovePlayListById(id);
+            return StatusCode((int)data.ErrorCode, data);
+        }
+
+
     }
 }

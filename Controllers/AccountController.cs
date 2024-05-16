@@ -84,5 +84,21 @@ namespace MusicWebAppBackend.Controllers
             var data = await _accountService.UpdateInfo(request);
             return StatusCode((int)data.ErrorCode, data);
         }
+
+        [HttpPut]
+        [Route(nameof(UpdateCoverAvatar))]
+        public async Task<ActionResult> UpdateCoverAvatar([FromForm]UpdateCoverAvatarDto request)
+        {
+            var data = await _accountService.UpdateCoverAvartar(request);
+            return StatusCode((int)data.ErrorCode, data);
+        }
+
+        [HttpPut]
+        [Route(nameof(UpdateAvatar))]
+        public async Task<ActionResult> UpdateAvatar([FromForm] UpdateAvatarDto request)
+        {
+            var data = await _accountService.UpdateAvartar(request);
+            return StatusCode((int)data.ErrorCode, data);
+        }
     }
 }

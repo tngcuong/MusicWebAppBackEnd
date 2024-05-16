@@ -42,7 +42,7 @@ namespace MusicWebAppBackend.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> DeleteASongById(string id)
         {
-            var data = await _songService.RemoveUserById(id);
+            var data = await _songService.RemoveSongById(id);
             return StatusCode((int)data.ErrorCode, data);
         }
 

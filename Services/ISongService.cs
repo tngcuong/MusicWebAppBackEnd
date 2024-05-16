@@ -20,7 +20,7 @@ namespace MusicWebAppBackend.Services
         Task<Payload<SongProfileDto>> GetById(string id);
         Task<Payload<Song>> Insert(SongInsertDto request);
         void Update(string id, Song song);
-        Task<Payload<Song>> RemoveUserById(String id);
+        Task<Payload<Song>> RemoveSongById(String id);
       
     }
 
@@ -137,12 +137,12 @@ namespace MusicWebAppBackend.Services
             throw new NotImplementedException();
         }
 
-        public async Task<Payload<Song>> RemoveUserById(string id)
+        public async Task<Payload<Song>> RemoveSongById(string id)
         {
             var song = await _songRepository.GetByIdAsync(id);
-            if (song == null)
+            if (song == null )
             {
-                Payload<Song>.NotFound(SongResource.NOSONGFOUND);
+                return Payload<Song>.NotFound(SongResource.NOSONGFOUND);
             }
 
             song.IsDeleted = true;

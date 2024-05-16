@@ -20,6 +20,7 @@ namespace MusicWebAppBackend.Services
         void Update(string id, PLaylist PlayList);
         Task<Payload<IList<PlayListProfileDto>>> GetByUserId(string id);
         Task<Payload<IList<PlayListProfileDto>>> GetLikedPlayListByUserId(String id);
+        Task<Payload<PLaylist>> RemovePlayListById(string id);
     }
 
     public class PlayListService : IPlayListService
@@ -98,7 +99,15 @@ namespace MusicWebAppBackend.Services
 
                 foreach (var item in _playListRepository.GetByIdAsync(listItem.Id).Result.Songs)
                 {
-                    listItem.SongList.Add(_songService.GetById(item).Result.Content);
+                    if(item != null)
+                    {
+                        var song = _songService.GetById(item).Result.Content;
+                        if(song != null)
+                        {
+                            listItem.SongList.Add(song);
+                        }
+                    }
+                   
                 }
             }
 
@@ -215,6 +224,19 @@ namespace MusicWebAppBackend.Services
             }
 
             return Payload<IList<PlayListProfileDto>>.Successfully(result);
+        }
+
+        public async Task<Payload<PLaylist>> RemovePlayListById(string id)
+        {
+            var playList = await _playListRepository.GetByIdAsync(id);
+            if (playList == null)
+            {
+                return Payload<PLaylist>.NotFound(SongResource.NOSONGFOUND);
+            }
+
+            playList.IsDeleted = true;
+            await _playListRepository.UpdateAsync(playList);
+            return Payload<PLaylist>.Successfully(playList, SongResource.DELETESUCCESS);
         }
     }
 }

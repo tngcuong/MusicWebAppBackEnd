@@ -18,6 +18,8 @@
         public const string UPDATESUCCESS = "Update successful.";
         public const string NOTENTER = "Please enter your username and password.";
         public const string DUPLICATEUSERNAME = "Username exist";
+        public const string UPDATEAVATARSUCCESS = "Update avatar successfully";
+        public const string UPDATECOVERAVATARSUCCESS = "Update cover avatar successfully";
     }
 }
 

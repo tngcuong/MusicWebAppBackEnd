@@ -27,6 +27,7 @@ namespace MusicWebAppBackend.Extensions
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<ILikedSongService, LikedSongService>();
+            services.AddScoped<ILikedPlayListService, LikedPlayList>();
             services.AddScoped<DbContext>();
             return services;
         }
@@ -46,7 +47,6 @@ namespace MusicWebAppBackend.Extensions
                 }
             });
 
-            //register automapper
             AutoMapperConfig.Init(config);
             return services;
         }

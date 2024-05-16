@@ -68,7 +68,9 @@ namespace MusicWebAppBackend.Services
                            Email = u.Email,
                            Name = u.Name,
                            Role = r.Name,
-                           ListSong = new List<string>(u.LikedSong)
+                           CoverAvatar = u.CoverAvatar,
+                           ListSong = new List<string>(u.LikedSong),
+                           LikedPlayList = new List<string>(u.LikedPlayList)
                        };
 
             if (!data.Any() || data == null)
@@ -248,6 +250,11 @@ namespace MusicWebAppBackend.Services
 
         public async Task<Payload<DetailUserDto>> GetDetailUserById(string id)
         {
+
+            if (_userRepository.GetByIdAsync(id).Result == null)
+            {
+                return Payload<DetailUserDto>.NotFound(UserResource.NOUSERFOUND);
+            }
             var data = (from r in _roleRepository.Table
                         from u in _userRepository.Table
                         where u.Id == id
@@ -260,6 +267,7 @@ namespace MusicWebAppBackend.Services
                             Email = u.Email,
                             Name = u.Name,
                             Role = r.Name,
+                            CoverAvatar = u.CoverAvatar,
                             ListSong = new List<string>(u.LikedSong),
                             Followers = new List<string>(u.Follower)
                         }).FirstOrDefault();

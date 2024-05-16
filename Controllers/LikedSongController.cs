@@ -17,10 +17,10 @@ namespace MusicWebAppBackend.Controllers
             _likedSongService = likedSongService;
         }
 
-        [Route(nameof(GetLikedSongById))]
+        [Route(nameof(GetLikedSongByUserId))]
         [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult> GetLikedSongById(string id)
+        public async Task<ActionResult> GetLikedSongByUserId(string id)
         {
             var data = await _likedSongService.GetLikedSongByUserId(id);
             return StatusCode((int)data.ErrorCode, data);

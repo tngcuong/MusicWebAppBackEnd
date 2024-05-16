@@ -61,7 +61,11 @@ namespace MusicWebAppBackend.Services
 
             foreach (var item in user.LikedSong)
             {
-                result.ListSong.Add(_songService.GetById(item).Result.Content);
+                var likedsong = _songService.GetById(item).Result.Content;
+                if (likedsong != null)
+                {
+                    result.ListSong.Add(likedsong);
+                }
             }
 
             return Payload<LikedSongUserDto>.Successfully(result);
@@ -148,7 +152,7 @@ namespace MusicWebAppBackend.Services
                                                 .ToList();
 
             var topLikedSongs = _songRepository.Table
-                                               .Where(song => topLikedSongIds.Contains(song.Id) && song.UserId == id) // Giả sử Id của bài hát được lưu trong field Id của đối tượng Song
+                                               .Where(song => topLikedSongIds.Contains(song.Id) && song.UserId == id) 
                                                .ToList();
 
 
@@ -161,7 +165,12 @@ namespace MusicWebAppBackend.Services
 
             foreach (var item in topLikedSongs)
             {
-                result.Add(_songService.GetById(item.Id.ToString()).Result.Content);
+                var likedsong = _songService.GetById(item.Id.ToString()).Result.Content;
+                if(likedsong != null)
+                {
+                    result.Add(likedsong);
+                }
+                
             }
 
             return Payload<IList<SongProfileDto>>.Successfully(result, SongResource.GETSUCCESS);
@@ -239,7 +248,7 @@ namespace MusicWebAppBackend.Services
 
                 default:
                     return Payload<IList<Object>>.NotFound();
-                    break;
+
             }
         }
     }
