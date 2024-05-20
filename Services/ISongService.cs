@@ -119,7 +119,7 @@ namespace MusicWebAppBackend.Services
             }
 
             IFormFile sourceFile = await _fileService.UploadMp3(request.Source, request.UserId);
-            if (sourceFile.Length == 0 || sourceFile == null || imgFile is EmptyFormFile)
+            if (sourceFile.Length == 0 || sourceFile == null || sourceFile is EmptyFormFile)
             {
                 return Payload<Song>.BadRequest(FileResource.MP3FVALID);
             }

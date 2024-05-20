@@ -68,6 +68,7 @@ namespace MusicWebAppBackend.Services
                            Email = u.Email,
                            Name = u.Name,
                            Role = r.Name,
+                           Description = u.Description,
                            CoverAvatar = u.CoverAvatar,
                            ListSong = new List<string>(u.LikedSong),
                            LikedPlayList = new List<string>(u.LikedPlayList)
@@ -266,6 +267,7 @@ namespace MusicWebAppBackend.Services
                             Avatar = u.Avatar,
                             Email = u.Email,
                             Name = u.Name,
+                            Description = u.Description,
                             Role = r.Name,
                             CoverAvatar = u.CoverAvatar,
                             ListSong = new List<string>(u.LikedSong),

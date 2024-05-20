@@ -20,6 +20,7 @@ using MusicWebAppBackend.Infrastructure.ViewModels.User;
 using NuGet.Common;
 using NuGet.Protocol;
 using Org.BouncyCastle.Asn1.Ocsp;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
@@ -241,11 +242,14 @@ namespace MusicWebAppBackend.Services
             }
 
             var data = await _fileService.SetImage(request.Avatar, request.Id);
-            if (data.Length < 1 || data == null || data is EmptyFormFile)
+            if(data.Length == 0 || data == null || data is EmptyFormFile)
             {
-                return Payload<User>.BadRequest(FileResource.IMAGEFVALID);
+                user.Description = request.Description;
+                user.Name = request.Name;
+                await _accountRepositoty.UpdateAsync(user);
+                return Payload<User>.Successfully(user, AccountResource.UPDATESUCCESS);
             }
-
+            request.Avatar = data;
             var userUpdate = request.MapTo<UpdateAccountDto, User>(user);
             await _accountRepositoty.UpdateAsync(userUpdate);
             return Payload<User>.Successfully(user, AccountResource.UPDATESUCCESS);
