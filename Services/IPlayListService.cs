@@ -179,24 +179,31 @@ namespace MusicWebAppBackend.Services
 
         public async Task<Payload<PlayListProfileDto>> InsertSongToPlayList(UpdateSongToPlayListDto request)
         {
-            var playlist = await _playListRepository.GetByIdAsync(request.IdPlayList);
-
-            foreach (var item in request.IdSong)
+            try
             {
-                if (playlist.Songs.Contains(item))
+                var playlist = await _playListRepository.GetByIdAsync(request.IdPlayList);
+
+                foreach (var item in request.IdSong)
                 {
-                    return Payload<PlayListProfileDto>.UpdatedFail();
+                    if (playlist.Songs.Contains(item))
+                    {
+                        return Payload<PlayListProfileDto>.UpdatedFail();
+                    }
+                    playlist.Songs.Add(item);
                 }
-                playlist.Songs.Add(item);
-            }
-            await _playListRepository.UpdateAsync(playlist);
+                await _playListRepository.UpdateAsync(playlist);
 
-            PlayListProfileDto playListDto = playlist.MapTo<PLaylist, PlayListProfileDto>();
-            foreach (var item in _playListRepository.GetByIdAsync(request.IdPlayList).Result.Songs)
-            {
-                playListDto.SongList.Add(_songService.GetById(item).Result.Content);
+                PlayListProfileDto playListDto = playlist.MapTo<PLaylist, PlayListProfileDto>();
+                foreach (var item in _playListRepository.GetByIdAsync(request.IdPlayList).Result.Songs)
+                {
+                    playListDto.SongList.Add(_songService.GetById(item).Result.Content);
+                }
+                return Payload<PlayListProfileDto>.Successfully(playListDto);
             }
-            return Payload<PlayListProfileDto>.Successfully(playListDto);
+            catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         public void Update(string id, PLaylist PlayList)

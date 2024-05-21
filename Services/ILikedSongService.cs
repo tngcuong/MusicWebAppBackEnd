@@ -7,6 +7,7 @@ using MusicWebAppBackend.Infrastructure.ViewModels.Song;
 using System.Collections.Generic;
 using MusicWebAppBackend.Infrastructure.EnumTypes;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Packaging;
 
 namespace MusicWebAppBackend.Services
 {
@@ -18,6 +19,7 @@ namespace MusicWebAppBackend.Services
         Task<Payload<LikedSongUserDto>> RemoveSongToLiked(string idUser, string idSong);
         Task<Payload<LikedSongDto>> GetLikedBySongId(string id);
         Task<Payload<IList<Object>>> GetCollectionUser(UserCollections collection, string id);
+        Task<Payload<RelateSongDto>> GetRalatedSongByUserId(string id);
     }
 
     public class LikedSongService : ILikedSongService
@@ -249,6 +251,27 @@ namespace MusicWebAppBackend.Services
                 default:
                     return Payload<IList<Object>>.NotFound();
 
+            }
+        }
+
+        public async Task<Payload<RelateSongDto>> GetRalatedSongByUserId(string id)
+        {
+            try
+            {
+                var user = await _userRepository.GetByIdAsync(id);
+                if (user == null)
+                {
+                    return Payload<RelateSongDto>.BadRequest(AccountResource.NOTFOUND);
+                }
+                RelateSongDto result = new RelateSongDto();
+                result.id = id;
+                result.RelatedSong.Add(_songService.GetSongByUserId(id).Result.Content);
+                result.RelatedSong.AddRange(GetLikedSongByUserId(id).Result.Content.ListSong);
+                return Payload<RelateSongDto>.Successfully(result, SongResource.GETSUCCESS);
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
             }
         }
     }

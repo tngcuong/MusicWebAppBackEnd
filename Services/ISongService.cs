@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
+using MusicWebAppBackend.Infrastructure.Helpers;
 using MusicWebAppBackend.Infrastructure.Mappers.Config;
 using MusicWebAppBackend.Infrastructure.Models;
 using MusicWebAppBackend.Infrastructure.Models.Const;
@@ -18,6 +19,7 @@ namespace MusicWebAppBackend.Services
         Task<Payload<Object>> GetSong(int pageIndex, int pageSize);
         Task<Payload<Object>> GetSongDescendingById(string id ,int pageIndex, int pageSize);
         Task<Payload<SongProfileDto>> GetById(string id);
+        Task<Payload<SongProfileDto>> GetSongByUserId(string id);
         Task<Payload<Song>> Insert(SongInsertDto request);
         void Update(string id, Song song);
         Task<Payload<Song>> RemoveSongById(String id);
@@ -124,6 +126,7 @@ namespace MusicWebAppBackend.Services
                 return Payload<Song>.BadRequest(FileResource.MP3FVALID);
             }
 
+            request.DurationTime= FunctionHelper.GetMp3Duration(request.Source);
             request.Source = sourceFile;
             request.Img = imgFile;
 
@@ -186,6 +189,33 @@ namespace MusicWebAppBackend.Services
                 Total = qure.Count(),
                 TotalPages = pageList.totalPages
             }, SongResource.GETSUCCESS);
+        }
+
+        public async Task<Payload<SongProfileDto>> GetSongByUserId(string id)
+        {
+            var qure = (from s in _songRepository.Table
+                        where s.IsDeleted == false
+                        where s.UserId == id
+                        select new SongProfileDto
+                        {
+                            Id = s.Id,
+                            Image = s.Img,
+                            Name = s.Name,
+                            Source = s.Source,
+                            DurationTime = s.DurationTime,
+                            CreateAt = s.CreatedAt,
+                            UserId = s.UserId,
+                            User = new UserProfileDto() { }
+                        }).FirstOrDefault();
+
+            if (qure == null)
+            {
+                return Payload<SongProfileDto>.NoContent(SongResource.NOSONGFOUND);
+            }
+
+            qure.User = _userService.GetUserById(qure.UserId).Result.Content;
+
+            return Payload<SongProfileDto>.Successfully(qure, SongResource.GETSUCCESS);
         }
     }
 }

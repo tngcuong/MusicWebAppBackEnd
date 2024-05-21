@@ -70,5 +70,14 @@ namespace MusicWebAppBackend.Controllers
             var data = await _likedSongService.GetCollectionUser(collections, id);
             return StatusCode((int)data.ErrorCode, data);
         }
+
+        [Route(nameof(GetRalatedSongByUserId))]
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult> GetRalatedSongByUserId(string id)
+        {
+            var data = await _likedSongService.GetRalatedSongByUserId(id);
+            return StatusCode((int)data.ErrorCode, data);
+        }
     }
 }

@@ -12,6 +12,7 @@ namespace MusicWebAppBackend.Infrastructure.Helpers
         {
             try
             {
+                if(file == null) return false;
                 using (var memoryStream = new MemoryStream())
                 {
                     file.CopyTo(memoryStream);

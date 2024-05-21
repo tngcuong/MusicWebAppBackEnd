@@ -5,6 +5,6 @@
         public string UserId { get; set; }
         public string Name { get; set; }
         public IFormFile Thumbnail { get; set; }
-        public bool IsPrivate { get; set; }
+        public bool IsPrivate { get; set; } = false;
     }
 }

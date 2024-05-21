@@ -79,7 +79,7 @@ namespace MusicWebAppBackend.Controllers
 
         [HttpPut]
         [Route(nameof(UpdateInfo))]     
-        public async Task<ActionResult> UpdateInfo(UpdateAccountDto request)
+        public async Task<ActionResult> UpdateInfo([FromForm]UpdateAccountDto request)
         {
             var data = await _accountService.UpdateInfo(request);
             return StatusCode((int)data.ErrorCode, data);

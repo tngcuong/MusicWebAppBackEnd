@@ -1,4 +1,6 @@
-﻿namespace MusicWebAppBackend.Infrastructure.ViewModels.Song
+﻿using Microsoft.AspNetCore.Mvc;
+
+namespace MusicWebAppBackend.Infrastructure.ViewModels.Song
 {
     public class SongInsertDto
     {
@@ -6,6 +8,6 @@
         public IFormFile Img { get; set; }
         public string Name { get; set; }
         public IFormFile Source { get; set; }
-        public float DurationTime { get; set; }
+        public float? DurationTime { get; set; }
     }
 }

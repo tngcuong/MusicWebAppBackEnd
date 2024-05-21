@@ -1,4 +1,5 @@
 ﻿using MongoDB.Bson;
+using NAudio.Wave;
 using System.Globalization;
 
 namespace MusicWebAppBackend.Infrastructure.Helpers
@@ -43,6 +44,19 @@ namespace MusicWebAppBackend.Infrastructure.Helpers
             string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file.FileName);
             string uniqueFileName = $"{RandomStringUnique()}-{fileNameWithoutExtension}{extension}";
             return uniqueFileName;
+        }
+
+        public static float GetMp3Duration(IFormFile mp3File)
+        {
+            if (mp3File == null || mp3File.Length == 0)
+                throw new ArgumentException("Invalid MP3 file");
+
+            using (var mp3Stream = mp3File.OpenReadStream())
+            using (var reader = new Mp3FileReader(mp3Stream))
+            {
+                TimeSpan duration = reader.TotalTime;
+                return (float)duration.TotalSeconds;
+            }
         }
     }
 }
