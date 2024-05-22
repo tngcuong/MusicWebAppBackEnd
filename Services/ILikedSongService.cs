@@ -265,8 +265,8 @@ namespace MusicWebAppBackend.Services
                 }
                 RelateSongDto result = new RelateSongDto();
                 result.id = id;
-                result.RelatedSong.Add(_songService.GetSongByUserId(id).Result.Content);
                 result.RelatedSong.AddRange(GetLikedSongByUserId(id).Result.Content.ListSong);
+               
                 return Payload<RelateSongDto>.Successfully(result, SongResource.GETSUCCESS);
             }
             catch(Exception e)

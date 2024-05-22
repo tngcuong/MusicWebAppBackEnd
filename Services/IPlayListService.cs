@@ -185,11 +185,11 @@ namespace MusicWebAppBackend.Services
 
                 foreach (var item in request.IdSong)
                 {
-                    if (playlist.Songs.Contains(item))
+                    if (!playlist.Songs.Contains(item))
                     {
-                        return Payload<PlayListProfileDto>.UpdatedFail();
+                        playlist.Songs.Add(item);
                     }
-                    playlist.Songs.Add(item);
+                   
                 }
                 await _playListRepository.UpdateAsync(playlist);
 
