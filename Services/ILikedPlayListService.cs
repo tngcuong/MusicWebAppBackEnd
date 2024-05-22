@@ -11,7 +11,7 @@ namespace MusicWebAppBackend.Services
 {
     public interface ILikedPlayListService
     {
-        Task<Payload<LikedPlayListDto>> ToggleLikePlayList (string userId, string playListId);
+        Task<Payload<LikedPlayListDto>> ToggleLikePlayList(string userId, string playListId);
         Task<Payload<CountLikedPLayListDto>> GetLikedByPlayListId(string id);
     }
 
@@ -58,10 +58,10 @@ namespace MusicWebAppBackend.Services
 
         public async Task<Payload<LikedPlayListDto>> ToggleLikePlayList(string userId, string playListId)
         {
-            var user = await _userRepository.GetByIdAsync(userId );
+            var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
             {
-                return Payload<LikedPlayListDto>.NotFound(UserResource.LOGIN);
+                return Payload<LikedPlayListDto>.NoContent(UserResource.LOGIN);
             }
             var result = new LikedPlayListDto();
             result.User = _userService.GetUserById(userId).Result.Content;
@@ -77,7 +77,7 @@ namespace MusicWebAppBackend.Services
                 await _userRepository.UpdateAsync(user);
             }
 
-           
+
 
             foreach (var item in user.LikedPlayList)
             {

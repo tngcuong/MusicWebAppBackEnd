@@ -51,7 +51,7 @@ namespace MusicWebAppBackend.Services
 
             if (user == null)
             {
-                return Payload<LikedSongUserDto>.NotFound(UserResource.NOUSERFOUND);
+                return Payload<LikedSongUserDto>.NoContent(UserResource.NOUSERFOUND);
             }
 
             if (user.LikedSong.Count() < 1)
@@ -80,12 +80,12 @@ namespace MusicWebAppBackend.Services
                         select u).FirstOrDefault();
             if (user == null)
             {
-                return Payload<LikedSongUserDto>.NotFound(UserResource.LOGIN);
+                return Payload<LikedSongUserDto>.NoContent(UserResource.NOUSERFOUND);
             }
 
             if (user.LikedSong.Contains(idSong))
             {
-                return Payload<LikedSongUserDto>.NotFound(SongResource.LIKED);
+                return Payload<LikedSongUserDto>.NoContent(SongResource.LIKED);
             }
 
             user.LikedSong.Add(idSong);
@@ -108,12 +108,12 @@ namespace MusicWebAppBackend.Services
                         select u).FirstOrDefault();
             if (user == null)
             {
-                return Payload<LikedSongUserDto>.NotFound(UserResource.NOUSERFOUND);
+                return Payload<LikedSongUserDto>.NoContent(UserResource.NOUSERFOUND);
             }
 
             if (!user.LikedSong.Contains(idSong))
             {
-                return Payload<LikedSongUserDto>.NotFound();
+                return Payload<LikedSongUserDto>.NoContent();
             }
             user.LikedSong.Remove(idSong);
             await _userRepository.UpdateAsync(user);
@@ -133,7 +133,7 @@ namespace MusicWebAppBackend.Services
             var user = await _userRepository.GetByIdAsync(id);
             var songLikesCount = new Dictionary<string, int>();
 
-            foreach (var otherUser in  _userRepository.Table)
+            foreach (var otherUser in _userRepository.Table)
             {
                 foreach (var likedSongId in otherUser.LikedSong)
                 {
@@ -154,7 +154,7 @@ namespace MusicWebAppBackend.Services
                                                 .ToList();
 
             var topLikedSongs = _songRepository.Table
-                                               .Where(song => topLikedSongIds.Contains(song.Id) && song.UserId == id) 
+                                               .Where(song => topLikedSongIds.Contains(song.Id) && song.UserId == id)
                                                .ToList();
 
 
@@ -168,11 +168,11 @@ namespace MusicWebAppBackend.Services
             foreach (var item in topLikedSongs)
             {
                 var likedsong = _songService.GetById(item.Id.ToString()).Result.Content;
-                if(likedsong != null)
+                if (likedsong != null)
                 {
                     result.Add(likedsong);
                 }
-                
+
             }
 
             return Payload<IList<SongProfileDto>>.Successfully(result, SongResource.GETSUCCESS);
@@ -219,11 +219,11 @@ namespace MusicWebAppBackend.Services
                 case UserCollections.Follower:
 
                     var data1 = await _userService.GetFollowerByUserId(id);
-                    if(data1 == null)
+                    if (data1 == null)
                     {
                         return Payload<IList<Object>>.NoContent(UserResource.NOFOLLOWER);
                     }
-                   
+
 
                     IList<object> objectList = data1.Content.Select(x => (object)x).ToList();
                     return Payload<IList<Object>>.Successfully(objectList);
@@ -233,7 +233,7 @@ namespace MusicWebAppBackend.Services
                     var data2 = await GetLikedSongByUserId(id);
                     if (data2 == null)
                     {
-                        return Payload<IList<Object>>.NoContent(SongResource.LIKEDNOCONTENT); 
+                        return Payload<IList<Object>>.NoContent(SongResource.LIKEDNOCONTENT);
                     }
                     IList<object> objectList2 = data2.Content.ListSong.Select(x => (object)x).ToList();
                     return Payload<IList<Object>>.Successfully(objectList2);
@@ -266,10 +266,10 @@ namespace MusicWebAppBackend.Services
                 RelateSongDto result = new RelateSongDto();
                 result.id = id;
                 result.RelatedSong.AddRange(GetLikedSongByUserId(id).Result.Content.ListSong);
-               
+
                 return Payload<RelateSongDto>.Successfully(result, SongResource.GETSUCCESS);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw new Exception(e.Message);
             }

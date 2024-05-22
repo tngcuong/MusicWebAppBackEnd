@@ -17,13 +17,13 @@ namespace MusicWebAppBackend.Services
     public interface ISongService
     {
         Task<Payload<Object>> GetSong(int pageIndex, int pageSize);
-        Task<Payload<Object>> GetSongDescendingById(string id ,int pageIndex, int pageSize);
+        Task<Payload<Object>> GetSongDescendingById(string id, int pageIndex, int pageSize);
         Task<Payload<SongProfileDto>> GetById(string id);
         Task<Payload<IList<SongProfileDto>>> GetSongByUserId(string id);
         Task<Payload<Song>> Insert(SongInsertDto request);
         void Update(string id, Song song);
         Task<Payload<Song>> RemoveSongById(String id);
-      
+
     }
 
     public class SongService : ISongService
@@ -67,7 +67,7 @@ namespace MusicWebAppBackend.Services
 
             if (pageList.Count == 0)
             {
-                return Payload<Object>.NotFound(SongResource.NOSONGFOUND);
+                return Payload<Object>.NoContent(SongResource.NOSONGFOUND);
             }
 
             return Payload<Object>.Successfully(new
@@ -82,7 +82,7 @@ namespace MusicWebAppBackend.Services
         public async Task<Payload<SongProfileDto>> GetById(string id)
         {
             var qure = (from s in _songRepository.Table
-                        where s.IsDeleted == false 
+                        where s.IsDeleted == false
                         where s.Id == id
                         select new SongProfileDto
                         {
@@ -96,7 +96,7 @@ namespace MusicWebAppBackend.Services
                             User = new UserProfileDto() { }
                         }).FirstOrDefault();
 
-            if(qure == null )
+            if (qure == null)
             {
                 return Payload<SongProfileDto>.NoContent(SongResource.NOSONGFOUND);
             }
@@ -111,7 +111,7 @@ namespace MusicWebAppBackend.Services
             var user = await _userRepository.GetByIdAsync(request.UserId);
             if (user == null)
             {
-                return Payload<Song>.NotFound(UserResource.NOUSERFOUND);
+                return Payload<Song>.NoContent(UserResource.NOUSERFOUND);
             }
 
             IFormFile imgFile = await _fileService.SetImage(request.Img, request.UserId);
@@ -126,7 +126,7 @@ namespace MusicWebAppBackend.Services
                 return Payload<Song>.BadRequest(FileResource.MP3FVALID);
             }
 
-            request.DurationTime= FunctionHelper.GetMp3Duration(request.Source);
+            request.DurationTime = FunctionHelper.GetMp3Duration(request.Source);
             request.Source = sourceFile;
             request.Img = imgFile;
 
@@ -143,9 +143,9 @@ namespace MusicWebAppBackend.Services
         public async Task<Payload<Song>> RemoveSongById(string id)
         {
             var song = await _songRepository.GetByIdAsync(id);
-            if (song == null )
+            if (song == null)
             {
-                return Payload<Song>.NotFound(SongResource.NOSONGFOUND);
+                return Payload<Song>.NoContent(SongResource.NOSONGFOUND);
             }
 
             song.IsDeleted = true;
@@ -179,7 +179,7 @@ namespace MusicWebAppBackend.Services
 
             if (pageList.Count == 0)
             {
-                return Payload<Object>.NotFound(SongResource.NOSONGFOUND);
+                return Payload<Object>.NoContent(SongResource.NOSONGFOUND);
             }
 
             return Payload<Object>.Successfully(new
@@ -213,12 +213,12 @@ namespace MusicWebAppBackend.Services
                 return Payload<IList<SongProfileDto>>.NoContent(SongResource.NOSONGFOUND);
             }
 
-            foreach(var item in qure) 
+            foreach (var item in qure)
             {
                 item.User = _userService.GetUserById(item.UserId).Result.Content;
             }
 
-           
+
 
             return Payload<IList<SongProfileDto>>.Successfully(qure, SongResource.GETSUCCESS);
         }
