@@ -8,6 +8,7 @@ using MusicWebAppBackend.Infrastructure.Mappers.Config;
 using MusicWebAppBackend.Infrastructure.Models.Paging;
 using MusicWebAppBackend.Infrastructure.ViewModels.User;
 using MusicWebAppBackend.Infrastructure.EnumTypes;
+using NuGet.Packaging;
 
 namespace MusicWebAppBackend.Services
 {
@@ -183,15 +184,9 @@ namespace MusicWebAppBackend.Services
             {
                 var playlist = await _playListRepository.GetByIdAsync(request.IdPlayList);
 
-                foreach (var item in request.IdSong)
-                {
-                    if (!playlist.Songs.Contains(item))
-                    {
-                        playlist.Songs.Add(item);
-                    }
-                   
-                }
-                await _playListRepository.UpdateAsync(playlist);
+                playlist.Songs.Clear();
+                playlist.Songs.AddRange(request.IdSong);
+               await _playListRepository.UpdateAsync(playlist);
 
                 PlayListProfileDto playListDto = playlist.MapTo<PLaylist, PlayListProfileDto>();
                 foreach (var item in _playListRepository.GetByIdAsync(request.IdPlayList).Result.Songs)
