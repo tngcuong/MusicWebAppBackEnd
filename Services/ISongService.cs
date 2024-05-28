@@ -23,7 +23,7 @@ namespace MusicWebAppBackend.Services
         Task<Payload<Song>> Insert(SongInsertDto request);
         void Update(string id, Song song);
         Task<Payload<Song>> RemoveSongById(String id);
-
+        Task<Payload<IList<SongProfileDto>>> SearchSongByName(string name);
     }
 
     public class SongService : ISongService
@@ -221,6 +221,13 @@ namespace MusicWebAppBackend.Services
 
 
             return Payload<IList<SongProfileDto>>.Successfully(qure, SongResource.GETSUCCESS);
+        }
+
+        public Task<Payload<IList<SongProfileDto>>> SearchSongByName(string name)
+        {
+            var songList = from s in _songRepository.Table
+                            where s.IsDeleted == false
+
         }
     }
 }
