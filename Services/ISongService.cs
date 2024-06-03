@@ -1,11 +1,15 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using FuzzySharp;
+using MailKit.Search;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.IdentityModel.Tokens;
 using MusicWebAppBackend.Infrastructure.Helpers;
 using MusicWebAppBackend.Infrastructure.Mappers.Config;
 using MusicWebAppBackend.Infrastructure.Models;
 using MusicWebAppBackend.Infrastructure.Models.Const;
 using MusicWebAppBackend.Infrastructure.Models.Data;
 using MusicWebAppBackend.Infrastructure.Models.Paging;
+using MusicWebAppBackend.Infrastructure.Utils;
 using MusicWebAppBackend.Infrastructure.ViewModels;
 using MusicWebAppBackend.Infrastructure.ViewModels.Song;
 using MusicWebAppBackend.Infrastructure.ViewModels.User;
@@ -23,7 +27,7 @@ namespace MusicWebAppBackend.Services
         Task<Payload<Song>> Insert(SongInsertDto request);
         void Update(string id, Song song);
         Task<Payload<Song>> RemoveSongById(String id);
-        Task<Payload<IList<SongProfileDto>>> SearchSongByName(string name);
+        Task<Payload<IList<SongProfileDto>>> SearchSongByName(string? name);
     }
 
     public class SongService : ISongService
@@ -223,10 +227,65 @@ namespace MusicWebAppBackend.Services
             return Payload<IList<SongProfileDto>>.Successfully(qure, SongResource.GETSUCCESS);
         }
 
-        public Task<Payload<IList<SongProfileDto>>> SearchSongByName(string name)
+        public async Task<Payload<IList<SongProfileDto>>> SearchSongByName(string? name)
         {
-            var songList = from s in _songRepository.Table
-                            where s.IsDeleted == false
+
+            IList<SongProfileDto> songMatching = new List<SongProfileDto>();
+
+            if (!name.IsNullOrEmpty())
+            {
+                var songList = await Task.FromResult(_songRepository.Table.Where(s => !s.IsDeleted).ToList());
+                songMatching = await Task.FromResult(songList
+                .Select(p => new
+                {
+                    Song = p,
+                    Similarity = Fuzz.Ratio(p.Name, name)
+                })
+                .Where(p => p.Song.Name.ToLower().Contains(name.ToLower()))
+                .OrderByDescending(p => p.Similarity)
+                .Select(p => new SongProfileDto
+                {
+                    Id = p.Song.Id,
+                    CreateAt = p.Song.CreatedAt,
+                    UserId = p.Song.UserId,
+                    DurationTime = p.Song.DurationTime,
+                    Image = p.Song.Img,
+                    Name = p.Song.Name,
+                    Source = p.Song.Source,
+                }).ToList());
+            }
+            else
+            {
+                songMatching = await Task.FromResult((from s in _songRepository.Table
+                                                      where s.IsDeleted == false
+                                                      select new SongProfileDto
+                                                      {
+                                                          Id = s.Id,
+                                                          Image = s.Img,
+                                                          Name = s.Name,
+                                                          Source = s.Source,
+                                                          DurationTime = s.DurationTime,
+                                                          CreateAt = s.CreatedAt,
+                                                          UserId = s.UserId,
+                                                          User = new UserProfileDto() { }
+                                                      }).ToList());
+            }
+
+
+
+
+            if (songMatching == null || songMatching.Count == 0)
+            {
+                return Payload<IList<SongProfileDto>>.NoContent(SongResource.NOSONGFOUND);
+            }
+
+
+            foreach (var item in songMatching)
+            {
+                item.User = (await _userService.GetUserById(item.UserId)).Content;
+            }
+
+            return Payload<IList<SongProfileDto>>.Successfully(songMatching, SongResource.GETSUCCESS);
 
         }
     }

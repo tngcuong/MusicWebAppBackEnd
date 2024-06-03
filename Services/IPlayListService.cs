@@ -9,6 +9,8 @@ using MusicWebAppBackend.Infrastructure.Models.Paging;
 using MusicWebAppBackend.Infrastructure.ViewModels.User;
 using MusicWebAppBackend.Infrastructure.EnumTypes;
 using NuGet.Packaging;
+using FuzzySharp;
+using Microsoft.IdentityModel.Tokens;
 
 namespace MusicWebAppBackend.Services
 {
@@ -22,6 +24,7 @@ namespace MusicWebAppBackend.Services
         Task<Payload<IList<PlayListProfileDto>>> GetByUserId(string id);
         Task<Payload<IList<PlayListProfileDto>>> GetLikedPlayListByUserId(String id);
         Task<Payload<PLaylist>> RemovePlayListById(string id);
+        Task<Payload<IList<PlayListProfileDto>>> SearchPlaylistByName(string? name);
     }
 
     public class PlayListService : IPlayListService
@@ -62,9 +65,9 @@ namespace MusicWebAppBackend.Services
                             SongList = new List<SongProfileDto>()
                         }).FirstOrDefault();
 
-            if(qure == null) 
+            if (qure == null)
             {
-                return Payload<PlayListProfileDto>.NoContent( PlayListResource.NOALBUMFOUND);
+                return Payload<PlayListProfileDto>.NoContent(PlayListResource.NOALBUMFOUND);
             }
 
             qure.CreateBy = _userService.GetUserById(qure.CreateById).Result.Content;
@@ -90,8 +93,6 @@ namespace MusicWebAppBackend.Services
                             IsPrivate = s.IsPrivate,
                             CreateAt = s.CreatedAt,
                             CreateById = s.UserId,
-                            CreateBy = new UserProfileDto(),
-                            SongList = new List<SongProfileDto>()
                         }).ToList();
 
             foreach (var listItem in qure)
@@ -100,15 +101,15 @@ namespace MusicWebAppBackend.Services
 
                 foreach (var item in _playListRepository.GetByIdAsync(listItem.Id).Result.Songs)
                 {
-                    if(item != null)
+                    if (item != null)
                     {
                         var song = _songService.GetById(item).Result.Content;
-                        if(song != null)
+                        if (song != null)
                         {
                             listItem.SongList.Add(song);
                         }
                     }
-                   
+
                 }
             }
 
@@ -125,10 +126,8 @@ namespace MusicWebAppBackend.Services
                             Thumbnail = s.Thumbnail,
                             Name = s.Name,
                             CreateById = s.UserId,
-                            CreateBy = new UserProfileDto(),
                             CreateAt = s.CreatedAt,
                             IsPrivate = s.IsPrivate,
-                            SongList = new List<SongProfileDto>()
                         }).ToList();
             foreach (var listItem in qure)
             {
@@ -186,7 +185,7 @@ namespace MusicWebAppBackend.Services
 
                 playlist.Songs.Clear();
                 playlist.Songs.AddRange(request.IdSong);
-               await _playListRepository.UpdateAsync(playlist);
+                await _playListRepository.UpdateAsync(playlist);
 
                 PlayListProfileDto playListDto = playlist.MapTo<PLaylist, PlayListProfileDto>();
                 foreach (var item in _playListRepository.GetByIdAsync(request.IdPlayList).Result.Songs)
@@ -195,7 +194,7 @@ namespace MusicWebAppBackend.Services
                 }
                 return Payload<PlayListProfileDto>.Successfully(playListDto);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
@@ -239,6 +238,76 @@ namespace MusicWebAppBackend.Services
             playList.IsDeleted = true;
             await _playListRepository.UpdateAsync(playList);
             return Payload<PLaylist>.Successfully(playList, SongResource.DELETESUCCESS);
+        }
+
+        public async Task<Payload<IList<PlayListProfileDto>>> SearchPlaylistByName(string? name)
+        {
+
+            IList<PlayListProfileDto> playlistMatching = new List<PlayListProfileDto>();
+
+            if (!name.IsNullOrEmpty())
+            {
+                var playlistList = await Task.FromResult(_playListRepository.Table.Where(s => !s.IsDeleted).ToList());
+                playlistMatching = await Task.FromResult(playlistList
+               .Select(p => new
+               {
+                   Playlist = p,
+                   Similarity = Fuzz.Ratio(p.Name, name)
+               })
+               .Where(p => p.Playlist.Name.ToLower().Contains(name.ToLower()))
+               .OrderByDescending(p => p.Similarity)
+               .Select(p => new PlayListProfileDto
+               {
+                   Id = p.Playlist.Id,
+                   CreateAt = p.Playlist.CreatedAt,
+                   Thumbnail = p.Playlist.Thumbnail,
+                   CreateById = p.Playlist.UserId,
+                   IsPrivate = p.Playlist.IsPrivate,
+                   Name = p.Playlist.Name,
+               }).ToList());
+            }
+            else
+            {
+                playlistMatching = await Task.FromResult((from s in _playListRepository.Table
+                                                          where s.IsDeleted == false
+                                                          select new PlayListProfileDto
+                                                          {
+                                                              Id = s.Id,
+                                                              Thumbnail = s.Thumbnail,
+                                                              Name = s.Name,
+                                                              CreateById = s.UserId,
+                                                              CreateAt = s.CreatedAt,
+                                                              IsPrivate = s.IsPrivate,
+                                                          }).ToList());
+            }
+
+
+
+            if (playlistMatching == null || playlistMatching.Count == 0)
+            {
+                return Payload<IList<PlayListProfileDto>>.NoContent(PlayListResource.NOALBUMFOUND);
+            }
+
+
+            foreach (var playlist in playlistMatching)
+            {
+                playlist.CreateBy = (await _userService.GetUserById(playlist.CreateById)).Content;
+
+                foreach (var item in _playListRepository.GetByIdAsync(playlist.Id).Result.Songs)
+                {
+                    if (item != null)
+                    {
+                        var song = _songService.GetById(item).Result.Content;
+                        if (song != null)
+                        {
+                            playlist.SongList.Add(song);
+                        }
+                    }
+
+                }
+            }
+
+            return Payload<IList<PlayListProfileDto>>.Successfully(playlistMatching, PlayListResource.GETSUCCESS);
         }
     }
 }

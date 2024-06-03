@@ -23,7 +23,7 @@ namespace MusicWebAppBackend.Controllers
             _tokenService = tokenService;
         }
 
-        
+
         [Route(nameof(Insert))]
         [HttpPost]
         public async Task<ActionResult> Insert(InsertUserDto request)
@@ -47,7 +47,7 @@ namespace MusicWebAppBackend.Controllers
         public async Task<IActionResult> GetAllUser(int pageIndex, int pageSize)
         {
             var data = await _userService.GetUser(pageIndex, pageSize);
-            return StatusCode((int)data.ErrorCode,data);
+            return StatusCode((int)data.ErrorCode, data);
         }
 
         [Authorize]
@@ -62,7 +62,7 @@ namespace MusicWebAppBackend.Controllers
         [Authorize]
         [Route(nameof(UpdateUserById))]
         [HttpPut]
-        public async Task<ActionResult> UpdateUserById([FromQuery]string id, UpdateUserDto request)
+        public async Task<ActionResult> UpdateUserById([FromQuery] string id, UpdateUserDto request)
         {
             var data = await _userService.UpdateUserById(id, request);
             return StatusCode((int)data.ErrorCode, data);
@@ -83,6 +83,15 @@ namespace MusicWebAppBackend.Controllers
         public async Task<ActionResult> GetFollowerByUserId(string id)
         {
             var data = await _userService.GetFollowerByUserId(id);
+            return StatusCode((int)data.ErrorCode, data);
+        }
+
+        [Route(nameof(SearchPeopleByName))]
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<ActionResult> SearchPeopleByName(string? name)
+        {
+            var data = await _userService.SearchPeopleByName(name);
             return StatusCode((int)data.ErrorCode, data);
         }
     }

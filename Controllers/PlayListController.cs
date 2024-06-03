@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MusicWebAppBackend.Infrastructure.ViewModels.PlayList;
 using MusicWebAppBackend.Infrastructure.ViewModels.Role;
@@ -11,14 +12,14 @@ namespace MusicWebAppBackend.Controllers
     public class PlayListController : ControllerBase
     {
         private readonly IPlayListService _playListService;
-        public PlayListController(IPlayListService playListService) 
-        { 
+        public PlayListController(IPlayListService playListService)
+        {
             _playListService = playListService;
         }
 
         [Route(nameof(CreateAPlayList))]
         [HttpPost]
-        public async Task<ActionResult> CreateAPlayList([FromForm]InsertPlayListDto request)
+        public async Task<ActionResult> CreateAPlayList([FromForm] InsertPlayListDto request)
         {
             var data = await _playListService.InsertAPlayList(request);
             return StatusCode((int)data.ErrorCode, data);
@@ -65,6 +66,13 @@ namespace MusicWebAppBackend.Controllers
             return StatusCode((int)data.ErrorCode, data);
         }
 
-
+        [Route(nameof(SearchPlaylistByName))]
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<ActionResult> SearchPlaylistByName(string? name)
+        {
+            var data = await _playListService.SearchPlaylistByName(name);
+            return StatusCode((int)data.ErrorCode, data);
+        }
     }
 }

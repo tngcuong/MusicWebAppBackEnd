@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using FuzzySharp;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
 using MusicWebAppBackend.Infrastructure.Helpers;
 using MusicWebAppBackend.Infrastructure.Mappers.Config;
@@ -26,7 +28,7 @@ namespace MusicWebAppBackend.Services
         Task<Payload<UpdateUserDto>> UpdateUserById(string id, UpdateUserDto user);
         Task<Payload<User>> RemoveUserById(String id);
         Task<Payload<IList<UserProfileDto>>> GetFollowerByUserId(String id);
-
+        Task<Payload<IList<DetailUserDto>>> SearchPeopleByName(string? name);
     }
 
     public class UserService : IUserService
@@ -289,6 +291,58 @@ namespace MusicWebAppBackend.Services
             }
 
             return Payload<DetailUserDto>.Successfully(data, UserResource.GETUSERSUCCESSFUL);
+        }
+
+        public async Task<Payload<IList<DetailUserDto>>> SearchPeopleByName(string? name)
+        {
+
+            IList<DetailUserDto> userMatching = new List<DetailUserDto>();
+
+            if (!name.IsNullOrEmpty())
+            {
+                var userList = await Task.FromResult(_userRepository.Table.Where(s => s.IsDeleted == false).ToList());
+                userMatching = await Task.FromResult(userList
+                .Select(p => new
+                {
+                    User = p,
+                    Similarity = Fuzz.Ratio(p.Name, name)
+                })
+                 .Where(p => p.User.Name.ToLower().Contains(name.ToLower()))
+                .OrderByDescending(p => p.Similarity)
+                .Select(p => new DetailUserDto
+                {
+                    Id = p.User.Id,
+                    Avatar = p.User.Avatar,
+                    CoverAvatar = p.User.CoverAvatar,
+                    Description = p.User.Description,
+                    Name = p.User.Name,
+                    Followers = new List<string>(p.User.Follower)
+                }).ToList());
+            }
+            else
+            {
+                userMatching = await Task.FromResult((from u in _userRepository.Table
+                                                      from r in _roleRepository.Table
+                                                      where r.Users.Contains(u.Id)
+                                                      where u.IsDeleted == false
+                                                      select new DetailUserDto
+                                                      {
+                                                          Id = u.Id,
+                                                          Avatar = u.Avatar,
+                                                          Email = u.Email,
+                                                          Name = u.Name,
+                                                          Description = u.Description,
+                                                          CoverAvatar = u.CoverAvatar,
+                                                          ListSong = new List<string>(u.LikedSong),
+                                                      }).ToList());
+            }
+
+            if (userMatching == null || userMatching.Count == 0)
+            {
+                return Payload<IList<DetailUserDto>>.NoContent(SongResource.NOSONGFOUND);
+            }
+
+            return Payload<IList<DetailUserDto>>.Successfully(userMatching, SongResource.GETSUCCESS);
         }
     }
 }

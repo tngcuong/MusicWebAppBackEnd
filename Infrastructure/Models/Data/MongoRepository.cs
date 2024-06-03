@@ -48,9 +48,9 @@ namespace MusicWebAppBackend.Infrastructure.Models.Data
         public MongoRepository()
         {
 
-                var client = new MongoClient("mongodb://localhost:27017");
-                _database = client.GetDatabase("MusicWebApp");
-                _collection = _database.GetCollection<T>(typeof(T).Name);
+            var client = new MongoClient("mongodb://localhost:27017");
+            _database = client.GetDatabase("MusicWebApp");
+            _collection = _database.GetCollection<T>(typeof(T).Name);
         }
 
         //public MongoRepository(string connectionString)
