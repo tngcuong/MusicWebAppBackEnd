@@ -11,5 +11,6 @@
         public const string NOFOLLOWER = "User has no follower.";
         public const string NOLIKEDPLAYLIST = "User has no liked playlist.";
         public const string NOLIKEDSONG = "User has no liked song.";
+        public const string NOFOLLOWING = "User isn't following anyone now.";
     }
 }

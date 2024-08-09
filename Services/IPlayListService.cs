@@ -74,7 +74,12 @@ namespace MusicWebAppBackend.Services
 
             foreach (var item in _playListRepository.GetByIdAsync(id).Result.Songs)
             {
-                qure.SongList.Add(_songService.GetById(item).Result.Content);
+                var song = await _songService.GetById(item);
+                if (song.Content != null)
+                {
+                    qure.SongList.Add(song.Content);
+                }
+
             }
 
             return Payload<PlayListProfileDto>.Successfully(qure, PlayListResource.GETSUCCESS);

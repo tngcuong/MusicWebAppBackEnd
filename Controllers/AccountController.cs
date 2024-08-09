@@ -17,7 +17,7 @@ namespace MusicWebAppBackend.Controllers
     {
         private readonly IAccountService _accountService;
         private readonly ITokenService _tokenService;
-        public AccountController(IAccountService accountService, 
+        public AccountController(IAccountService accountService,
             ITokenService tokenService)
         {
             _accountService = accountService;
@@ -50,7 +50,7 @@ namespace MusicWebAppBackend.Controllers
         public async Task<IActionResult> Login(AccountLoginDto request)
         {
             var data = await _accountService.Login(request);
-            return StatusCode((int)data.ErrorCode,data);
+            return StatusCode((int)data.ErrorCode, data);
         }
 
         [HttpPost]
@@ -58,7 +58,7 @@ namespace MusicWebAppBackend.Controllers
         [Route(nameof(Logout))]
         public async Task<IActionResult> Logout(string token)
         {
-            return  Ok(await _accountService.Logout(token));
+            return Ok(await _accountService.Logout(token));
         }
 
         [HttpGet]
@@ -78,8 +78,8 @@ namespace MusicWebAppBackend.Controllers
         }
 
         [HttpPut]
-        [Route(nameof(UpdateInfo))]     
-        public async Task<ActionResult> UpdateInfo([FromForm]UpdateAccountDto request)
+        [Route(nameof(UpdateInfo))]
+        public async Task<ActionResult> UpdateInfo([FromForm] UpdateAccountDto request)
         {
             var data = await _accountService.UpdateInfo(request);
             return StatusCode((int)data.ErrorCode, data);
@@ -87,7 +87,7 @@ namespace MusicWebAppBackend.Controllers
 
         [HttpPut]
         [Route(nameof(UpdateCoverAvatar))]
-        public async Task<ActionResult> UpdateCoverAvatar([FromForm]UpdateCoverAvatarDto request)
+        public async Task<ActionResult> UpdateCoverAvatar([FromForm] UpdateCoverAvatarDto request)
         {
             var data = await _accountService.UpdateCoverAvartar(request);
             return StatusCode((int)data.ErrorCode, data);

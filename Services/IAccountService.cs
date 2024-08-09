@@ -37,7 +37,7 @@ namespace MusicWebAppBackend.Services
         Task<Payload<User>> VerifyEmail(VerifyDto request);
         Task<Payload<User>> ChangePasssord(string id, ChangePasswordDto request);
         Task<Payload<User>> UpdateInfo(UpdateAccountDto request);
-        Task<Payload<UserProfileDto>> UpdateCoverAvartar (UpdateCoverAvatarDto request);
+        Task<Payload<UserProfileDto>> UpdateCoverAvartar(UpdateCoverAvatarDto request);
         Task<Payload<UserProfileDto>> UpdateAvartar(UpdateAvatarDto request);
     }
 
@@ -47,6 +47,7 @@ namespace MusicWebAppBackend.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ConfigEmail _configMail;
         private readonly IMediator _mediator;
+        private readonly IRepository<OTP> _otpRepositoty;
         private readonly IRepository<User> _accountRepositoty;
         private readonly IRepository<Role> _roleRepositoty;
         private readonly IFileService _fileService;
@@ -54,6 +55,7 @@ namespace MusicWebAppBackend.Services
 
         public AccountService(IRepository<User> accountRepositoty,
             IRepository<Role> roleRepositoty,
+            IRepository<OTP> otpRepositoty,
             IMediator mediator,
             IRoleService roleService,
             ConfigEmail configMail,
@@ -63,6 +65,7 @@ namespace MusicWebAppBackend.Services
         {
             _fileService = fileService;
             _tokenService = tokenService;
+            _otpRepositoty = otpRepositoty;
             _httpContextAccessor = httpContextAccessor;
             _mediator = mediator;
             _accountRepositoty = accountRepositoty;
@@ -148,7 +151,7 @@ namespace MusicWebAppBackend.Services
 
         public async Task<Payload<User>> Logout(string token)
         {
-            var userName = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.Name).ToString();
+            var userName = _httpContextAccessor.HttpContext.User.FindFirstValue("username");
             var user = _accountRepositoty.Table.FirstOrDefault(a => a.UserName.Equals(userName));
             _httpContextAccessor.HttpContext.Session.Clear();
 
@@ -173,13 +176,12 @@ namespace MusicWebAppBackend.Services
                 return Payload<AccountRegisterDto>.Dublicated(AccountResource.DUPLICATEUSERNAME);
             }
 
-            await SendMailRegister(model.Email);
+            await SendMailRegister(model.Email, model.OtpId);
             return Payload<AccountRegisterDto>.Successfully(model, AccountResource.MAILSUCCESSFUL);
         }
 
-        public async Task<Payload<EmailRegisterDto>> SendMailRegister(string mail)
+        public async Task<Payload<EmailRegisterDto>> SendMailRegister(string mail, string id)
         {
-            _httpContextAccessor.HttpContext.Response.Cookies.Delete("OTP");
             var emailContent = new EmailContent()
             {
                 Code = RenderRandomCode.GenerateRandomSixDigitNumber(),
@@ -197,17 +199,13 @@ namespace MusicWebAppBackend.Services
 
             await _configMail.SetContent(mail, AccountResource.REGISTITLE, emailHTML);
 
-            var cookieOptions = new CookieOptions
+            OTP otp = new OTP
             {
-                HttpOnly = true,
-                Domain = "localhost",
-                Path = "/",
-                SameSite = SameSiteMode.None,
-                Secure = true,
-                Expires = DateTimeOffset.Now.AddMinutes(3),
-
+                Code = emailContent.Code.ToString(),
+                EmailRegister = mail,
+                Specify = id
             };
-            _httpContextAccessor.HttpContext.Response.Cookies.Append("OTP", emailContent.Code.ToString(), cookieOptions);
+            await _otpRepositoty.InsertAsync(otp);
 
             return Payload<EmailRegisterDto>.Successfully(new EmailRegisterDto { Email = mail });
         }
@@ -242,7 +240,7 @@ namespace MusicWebAppBackend.Services
             }
 
             var data = await _fileService.SetImage(request.Avatar, request.Id);
-            if(data.Length == 0 || data == null || data is EmptyFormFile)
+            if (data.Length == 0 || data == null || data is EmptyFormFile)
             {
                 user.Description = request.Description;
                 user.Name = request.Name;
@@ -257,13 +255,13 @@ namespace MusicWebAppBackend.Services
 
         public async Task<Payload<User>> VerifyEmail(VerifyDto request)
         {
-            var OTP = _httpContextAccessor.HttpContext.Request.Cookies["OTP"];
-            if(OTP == null)
+            var OTP = _otpRepositoty.Table.FirstOrDefault(x => x.EmailRegister == request.Email && x.IsActive == true && x.Specify == request.OtpId);
+            if (OTP.Expire.ToLocalTime() < DateTime.Now)
             {
                 return Payload<User>.BadRequest(AccountResource.EXPRIREOTP);
             }
 
-            if ( OTP != request.OTP)
+            if (OTP.Code != request.OTP)
                 return Payload<User>.BadRequest(AccountResource.WRONGOTP);
 
             User user = new User
@@ -281,7 +279,6 @@ namespace MusicWebAppBackend.Services
             await _roleRepositoty.UpdateAsync(role);
 
             await _accountRepositoty.InsertAsync(user);
-            _httpContextAccessor.HttpContext.Response.Cookies.Delete("OTP");
             return Payload<User>.Successfully(user, AccountResource.SUCCESSREGIS);
         }
     }

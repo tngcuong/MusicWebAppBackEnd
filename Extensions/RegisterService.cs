@@ -15,12 +15,12 @@ namespace MusicWebAppBackend.Extensions
     {
         public static IServiceCollection RegisterServices(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddScoped(typeof(IRepository<>), typeof(MongoRepository<>));
             services.AddHttpContextAccessor();
             services.AddDistributedMemoryCache();
+            services.AddScoped(typeof(IRepository<>), typeof(MongoRepository<>));
             services.AddScoped<ConfigEmail>();
             services.AddScoped<IPlayListService, PlayListService>();
-            services.AddScoped<IFileService,FileService>();
+            services.AddScoped<IFileService, FileService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<ISongService, SongService>();

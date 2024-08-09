@@ -15,10 +15,11 @@ namespace MusicWebAppBackend.Services
     {
         Task<Payload<Role>> Add(AddRoleDto model);
         Task<Payload<Role>> GetRoleByIdUser(string request);
-        Task<string> GetRoleNameByIdUser(string request);
+        Task<Payload<string>> GetRoleNameByIdUser(string request);
         Task<Role> GetRoleForUser(string request = "User");
         Task<Payload<Role>> GetRoleByName(string reques);
         Task<Payload<List<RoleProfileDto>>> GetRole();
+
     }
 
     public class RoleService : IRoleService
@@ -46,14 +47,14 @@ namespace MusicWebAppBackend.Services
             return Payload<Role>.Successfully(role);
         }
 
-        public async Task<string> GetRoleNameByIdUser(string request)
+        public async Task<Payload<string>> GetRoleNameByIdUser(string request)
         {
             var role = _roleRepository.Table.FirstOrDefault(e => e.Users.Contains(request));
             if (role == null)
             {
-                return "";
+                return Payload<string>.NotFound();
             }
-            return role.Name;
+            return Payload<string>.Successfully(role.Name);
         }
 
         public async Task<Payload<Role>> GetRoleByName(string request)

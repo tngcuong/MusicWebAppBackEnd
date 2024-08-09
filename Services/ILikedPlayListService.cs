@@ -61,7 +61,7 @@ namespace MusicWebAppBackend.Services
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
             {
-                return Payload<LikedPlayListDto>.NoContent(UserResource.LOGIN);
+                return Payload<LikedPlayListDto>.NoContent(UserResource.NOUSERFOUND);
             }
             var result = new LikedPlayListDto();
             result.User = _userService.GetUserById(userId).Result.Content;

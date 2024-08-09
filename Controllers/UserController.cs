@@ -69,10 +69,12 @@ namespace MusicWebAppBackend.Controllers
         }
 
         [Route(nameof(GetCurrentUser))]
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult> GetCurrentUser()
         {
             var id = HttpContext.User.Claims.FirstOrDefault(x => x.Type == "id").Value;
+            if (id == null) return Unauthorized();
             var data = await _userService.GetUserById(id);
             return StatusCode((int)data.ErrorCode, data);
         }
@@ -92,6 +94,15 @@ namespace MusicWebAppBackend.Controllers
         public async Task<ActionResult> SearchPeopleByName(string? name)
         {
             var data = await _userService.SearchPeopleByName(name);
+            return StatusCode((int)data.ErrorCode, data);
+        }
+
+        [Route(nameof(ToggleFollowUser))]
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<ActionResult> ToggleFollowUser([FromQuery] string id, [FromBody] string userId)
+        {
+            var data = await _userService.ToggleFollowUser(id, userId);
             return StatusCode((int)data.ErrorCode, data);
         }
     }

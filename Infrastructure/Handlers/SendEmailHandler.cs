@@ -47,11 +47,9 @@ namespace MusicWebAppBackend.Infrastructure.Handlers
 
                         await viewResult.View.RenderAsync(viewContext);
                         return await Task.FromResult(writers.ToString());
-                        //await SendEmai(email, title); 
                     }
                     catch (Exception ex)
                     {
-                        // Xử lý lỗi, ví dụ: log lỗi hoặc thông báo cho người dùng 
                         message = $"{ex.Message}";
                     }
                 }

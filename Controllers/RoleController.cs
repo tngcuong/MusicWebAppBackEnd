@@ -35,5 +35,15 @@ namespace MusicWebAppBackend.Controllers
             return StatusCode((int)data.ErrorCode, data);
 
         }
+
+        [Route(nameof(GetRoleNameByCurrentUser))]
+        [HttpGet]
+        public async Task<ActionResult> GetRoleNameByCurrentUser()
+        {
+            var id = HttpContext.User.Claims.FirstOrDefault(x => x.Type == "id").Value;
+            var data = await _roleService.GetRoleNameByIdUser(id);
+            return StatusCode((int)data.ErrorCode, data);
+
+        }
     }
 }

@@ -9,10 +9,10 @@
         public string Email { get; set; }
         public string Role { get; set; }
         public string Description { get; set; }
-        public int Following { get; set; } = 0;
+        public int Followers { get; set; } = 0;
         public string CoverAvatar { get; set; }
         public List<string> Tracks { get; set; } = new List<string>();
         public List<string> ListSong { get; set; } = new List<string>();
-        public List<string> Followers { get; set; } = new List<string>();
+        public List<string> Following { get; set; } = new List<string>();
     }
 }
