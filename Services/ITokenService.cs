@@ -1,10 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.IdentityModel.Tokens;
 using MusicWebAppBackend.Infrastructure.Models;
 using MusicWebAppBackend.Infrastructure.Models.Const;
 using MusicWebAppBackend.Infrastructure.Models.Data;
 using MusicWebAppBackend.Infrastructure.ViewModels;
-using Org.BouncyCastle.Asn1.Ocsp;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -27,7 +25,7 @@ namespace MusicWebAppBackend.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IConfiguration _configuration;
         private readonly IRoleService _roleService;
-       
+
         public TokenService(IConfiguration configuration,
               IHttpContextAccessor httpContextAccessor,
               IRepository<User> userRepository,
@@ -92,8 +90,8 @@ namespace MusicWebAppBackend.Services
             {
                 HttpOnly = true,
                 Domain = "localhost",
-                Path = "/", 
-                SameSite = SameSiteMode.None, 
+                Path = "/",
+                SameSite = SameSiteMode.None,
                 Secure = true,
                 Expires = newRefreshToken.Expires,
 

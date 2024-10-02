@@ -1,9 +1,4 @@
-﻿using Azure;
-using MediatR;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using MusicWebAppBackend.Infrastructure.Commands;
 using MusicWebAppBackend.Infrastructure.Helpers;
@@ -15,16 +10,8 @@ using MusicWebAppBackend.Infrastructure.Models.Data;
 using MusicWebAppBackend.Infrastructure.Utils;
 using MusicWebAppBackend.Infrastructure.ViewModels;
 using MusicWebAppBackend.Infrastructure.ViewModels.Account;
-using MusicWebAppBackend.Infrastructure.ViewModels.Song;
 using MusicWebAppBackend.Infrastructure.ViewModels.User;
-using NuGet.Common;
-using NuGet.Protocol;
-using Org.BouncyCastle.Asn1.Ocsp;
-using System.Diagnostics;
-using System.Net;
-using System.Net.Http;
 using System.Security.Claims;
-using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 
 
 namespace MusicWebAppBackend.Services
@@ -33,12 +20,14 @@ namespace MusicWebAppBackend.Services
     {
         Task<Payload<AccountRegisterDto>> Register(AccountRegisterDto model);
         Task<Payload<Object>> Login(AccountLoginDto request);
+        Task<Payload<bool>> ResetPasswordSendMail(ResetPasswordDto model);
         Task<Payload<User>> Logout(string token);
         Task<Payload<User>> VerifyEmail(VerifyDto request);
         Task<Payload<User>> ChangePasssord(string id, ChangePasswordDto request);
         Task<Payload<User>> UpdateInfo(UpdateAccountDto request);
         Task<Payload<UserProfileDto>> UpdateCoverAvartar(UpdateCoverAvatarDto request);
         Task<Payload<UserProfileDto>> UpdateAvartar(UpdateAvatarDto request);
+        Task<Payload<bool>> VerifyChange(VerifyChangeDto request);
     }
 
     public class AccountService : IAccountService
@@ -176,6 +165,14 @@ namespace MusicWebAppBackend.Services
                 return Payload<AccountRegisterDto>.Dublicated(AccountResource.DUPLICATEUSERNAME);
             }
 
+            var qurey2 = from a in _accountRepositoty.Table
+                         where a.UserName.Equals(model.Email) && a.IsDeleted == false
+                         select a;
+            if (qurey2.Any())
+            {
+                return Payload<AccountRegisterDto>.Dublicated(AccountResource.DUPLICATEEMAIL);
+            }
+
             await SendMailRegister(model.Email, model.OtpId);
             return Payload<AccountRegisterDto>.Successfully(model, AccountResource.MAILSUCCESSFUL);
         }
@@ -280,6 +277,36 @@ namespace MusicWebAppBackend.Services
 
             await _accountRepositoty.InsertAsync(user);
             return Payload<User>.Successfully(user, AccountResource.SUCCESSREGIS);
+        }
+
+        public async Task<Payload<bool>> VerifyChange(VerifyChangeDto request)
+        {
+            var OTP = _otpRepositoty.Table.FirstOrDefault(x => x.EmailRegister == request.Email && x.IsActive == true && x.Specify == request.OtpId);
+            if (OTP.Expire.ToLocalTime() < DateTime.Now)
+            {
+                return Payload<bool>.BadRequest(AccountResource.EXPRIREOTP);
+            }
+
+            if (OTP.Code != request.OTP)
+                return Payload<bool>.BadRequest(AccountResource.WRONGOTP);
+
+
+            return Payload<bool>.Successfully(true);
+        }
+
+        public async Task<Payload<bool>> ResetPasswordSendMail(ResetPasswordDto model)
+        {
+
+            var qurey = (from a in _accountRepositoty.Table
+                         where a.Email.Equals(model.Email) && a.IsDeleted == false
+                         select a).FirstOrDefault();
+            if (qurey == null)
+            {
+                return Payload<bool>.NotFound(AccountResource.NOTFOUND);
+            }
+            await SendMailRegister(model.Email, model.OtpId);
+
+            return Payload<bool>.Successfully(true);
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using MusicWebAppBackend.Infrastructure.Models.Entites;
-using System.Collections.Generic;
 
 namespace MusicWebAppBackend.Infrastructure.Models
 {

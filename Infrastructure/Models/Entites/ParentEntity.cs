@@ -1,5 +1,4 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
-using MusicWebAppBackend.Infrastructure.Helpers;
+﻿using MusicWebAppBackend.Infrastructure.Helpers;
 
 namespace MusicWebAppBackend.Infrastructure.Models.Entites
 {

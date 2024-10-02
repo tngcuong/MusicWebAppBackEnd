@@ -1,14 +1,8 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Mvc.ViewEngines;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Microsoft.AspNetCore.Mvc.ViewFeatures.Infrastructure;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MusicWebAppBackend.Extensions;
 using MusicWebAppBackend.Infrastructure.Models;
-using Swashbuckle.AspNetCore.Filters;
 using System.Reflection;
 using System.Text;
 

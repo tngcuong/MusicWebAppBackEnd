@@ -1,7 +1,4 @@
 ﻿using FuzzySharp;
-using MailKit.Search;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.IdentityModel.Tokens;
 using MusicWebAppBackend.Infrastructure.Helpers;
 using MusicWebAppBackend.Infrastructure.Mappers.Config;
@@ -9,18 +6,16 @@ using MusicWebAppBackend.Infrastructure.Models;
 using MusicWebAppBackend.Infrastructure.Models.Const;
 using MusicWebAppBackend.Infrastructure.Models.Data;
 using MusicWebAppBackend.Infrastructure.Models.Paging;
-using MusicWebAppBackend.Infrastructure.Utils;
 using MusicWebAppBackend.Infrastructure.ViewModels;
 using MusicWebAppBackend.Infrastructure.ViewModels.Song;
 using MusicWebAppBackend.Infrastructure.ViewModels.User;
-using Org.BouncyCastle.Bcpg;
-using System.Drawing.Printing;
 
 namespace MusicWebAppBackend.Services
 {
     public interface ISongService
     {
         Task<Payload<Object>> GetSong(int pageIndex, int pageSize);
+        Task<Payload<Object>> GetSongAdmin(int pageIndex, int pageSize);
         Task<Payload<Object>> GetSongDescendingById(string id, int pageIndex, int pageSize);
         Task<Payload<SongProfileDto>> GetById(string id);
         Task<Payload<IList<SongProfileDto>>> GetSongByUserId(string id);
@@ -28,6 +23,8 @@ namespace MusicWebAppBackend.Services
         void Update(string id, Song song);
         Task<Payload<Song>> RemoveSongById(String id);
         Task<Payload<IList<SongProfileDto>>> SearchSongByName(string? name);
+        Task<Payload<IList<SongProfileDto>>> GetRandomSong(int? size);
+        Task<Payload<SongProfileDto>> ToggleApproveSongById(string id);
     }
 
     public class SongService : ISongService
@@ -46,10 +43,34 @@ namespace MusicWebAppBackend.Services
             _fileService = fileService;
             _userService = userService;
         }
+        public async Task<Payload<SongProfileDto>> ToggleApproveSongById(string id)
+        {
+            var song = await _songRepository.GetByIdAsync(id);
+            if (song == null)
+            {
+                return Payload<SongProfileDto>.NoContent();
+            }
+
+            if (song.IsPrivate == false)
+            {
+                song.IsPrivate = true;
+                await _songRepository.UpdateAsync(song);
+            }
+            else
+            {
+                song.IsPrivate = false;
+                await _songRepository.UpdateAsync(song);
+            }
+
+            var result = song.MapTo<Song, SongProfileDto>();
+            return Payload<SongProfileDto>.Successfully(result);
+        }
+
         public async Task<Payload<Object>> GetSong(int pageIndex, int pageSize)
         {
             var qure = (from s in _songRepository.Table
-                        where s.IsDeleted == false
+                        join u in _userRepository.Table on s.UserId equals u.Id
+                        where s.IsDeleted == false && u.IsDeleted == false && s.IsPrivate == true
                         select new SongProfileDto
                         {
                             Id = s.Id,
@@ -58,13 +79,19 @@ namespace MusicWebAppBackend.Services
                             Source = s.Source,
                             DurationTime = s.DurationTime,
                             CreateAt = s.CreatedAt,
+                            IsPrivate = s.IsPrivate,
                             UserId = s.UserId,
                             User = new UserProfileDto() { }
                         }).ToList();
 
             foreach (var item in qure)
             {
-                item.User = _userService.GetUserById(item.UserId).Result.Content;
+                var user = await _userService.GetUserById(item.UserId);
+                if (user.Content != null)
+                {
+                    item.User = user.Content;
+                }
+
             }
 
             var pageList = await PageList<SongProfileDto>.Create(qure.AsQueryable(), pageIndex, pageSize);
@@ -86,7 +113,7 @@ namespace MusicWebAppBackend.Services
         public async Task<Payload<SongProfileDto>> GetById(string id)
         {
             var qure = (from s in _songRepository.Table
-                        where s.IsDeleted == false
+                        where s.IsDeleted == false && s.IsPrivate == true
                         where s.Id == id
                         select new SongProfileDto
                         {
@@ -105,7 +132,11 @@ namespace MusicWebAppBackend.Services
                 return Payload<SongProfileDto>.NoContent(SongResource.NOSONGFOUND);
             }
 
-            qure.User = _userService.GetUserById(qure.UserId).Result.Content;
+            var user = await _userService.GetUserById(qure.UserId);
+            if (user.Content != null)
+            {
+                qure.User = user.Content;
+            }
 
             return Payload<SongProfileDto>.Successfully(qure, SongResource.GETSUCCESS);
         }
@@ -160,7 +191,7 @@ namespace MusicWebAppBackend.Services
         public async Task<Payload<object>> GetSongDescendingById(string id, int pageIndex, int pageSize)
         {
             var qure = (from s in _songRepository.Table
-                        where s.IsDeleted == false && s.UserId == id
+                        where s.IsDeleted == false && s.UserId == id && s.IsPrivate == true
                         orderby s.CreatedAt descending
                         select new SongProfileDto
                         {
@@ -169,6 +200,7 @@ namespace MusicWebAppBackend.Services
                             Name = s.Name,
                             Source = s.Source,
                             DurationTime = s.DurationTime,
+                            IsPrivate = s.IsPrivate,
                             CreateAt = s.CreatedAt,
                             UserId = s.UserId,
                             User = new UserProfileDto() { }
@@ -176,7 +208,11 @@ namespace MusicWebAppBackend.Services
 
             foreach (var item in qure)
             {
-                item.User = _userService.GetUserById(item.UserId).Result.Content;
+                var user = await _userService.GetUserById(item.UserId);
+                if (user.Content != null)
+                {
+                    item.User = user.Content;
+                }
             }
 
             var pageList = await PageList<SongProfileDto>.Create(qure.AsQueryable(), pageIndex, pageSize);
@@ -219,7 +255,11 @@ namespace MusicWebAppBackend.Services
 
             foreach (var item in qure)
             {
-                item.User = _userService.GetUserById(item.UserId).Result.Content;
+                var user = await _userService.GetUserById(item.UserId);
+                if (user.Content != null)
+                {
+                    item.User = user.Content;
+                }
             }
 
 
@@ -232,32 +272,38 @@ namespace MusicWebAppBackend.Services
 
             IList<SongProfileDto> songMatching = new List<SongProfileDto>();
 
-            if (!name.IsNullOrEmpty())
+            if (!name.IsNullOrEmpty() && !name.Equals("undefined"))
             {
-                var songList = await Task.FromResult(_songRepository.Table.Where(s => !s.IsDeleted).ToList());
-                songMatching = await Task.FromResult(songList
-                .Select(p => new
-                {
-                    Song = p,
-                    Similarity = Fuzz.Ratio(p.Name, name)
-                })
-                .Where(p => p.Song.Name.ToLower().Contains(name.ToLower()))
-                .OrderByDescending(p => p.Similarity)
-                .Select(p => new SongProfileDto
-                {
-                    Id = p.Song.Id,
-                    CreateAt = p.Song.CreatedAt,
-                    UserId = p.Song.UserId,
-                    DurationTime = p.Song.DurationTime,
-                    Image = p.Song.Img,
-                    Name = p.Song.Name,
-                    Source = p.Song.Source,
-                }).ToList());
+                var songList = await Task.FromResult(_songRepository.Table.Where(s => !s.IsDeleted && s.IsPrivate == true).ToList());
+                songMatching = await Task.FromResult(
+                   (from p in songList
+                    join u in _userRepository.Table on p.UserId equals u.Id
+                    where u.IsDeleted == false
+                    select new
+                    {
+                        Song = p,
+                        User = u,
+                        Similarity = Fuzz.Ratio(p.Name, name)
+                    })
+                   .Where(p => p.Song.Name.ToLower().Contains(name.ToLower()))
+                   .OrderByDescending(p => p.Similarity)
+                   .Select(p => new SongProfileDto
+                   {
+                       Id = p.Song.Id,
+                       CreateAt = p.Song.CreatedAt,
+                       UserId = p.User.Id,
+                       DurationTime = p.Song.DurationTime,
+                       Image = p.Song.Img,
+                       Name = p.Song.Name,
+                       Source = p.Song.Source,
+                   }).ToList()
+               );
             }
             else
             {
                 songMatching = await Task.FromResult((from s in _songRepository.Table
-                                                      where s.IsDeleted == false
+                                                      join u in _userRepository.Table on s.UserId equals u.Id
+                                                      where s.IsDeleted == false && u.IsDeleted == false && s.IsPrivate == true
                                                       select new SongProfileDto
                                                       {
                                                           Id = s.Id,
@@ -282,11 +328,94 @@ namespace MusicWebAppBackend.Services
 
             foreach (var item in songMatching)
             {
-                item.User = (await _userService.GetUserById(item.UserId)).Content;
+                var user = await _userService.GetUserById(item.UserId);
+                if (user.Content != null)
+                {
+                    item.User = user.Content;
+                }
             }
 
             return Payload<IList<SongProfileDto>>.Successfully(songMatching, SongResource.GETSUCCESS);
 
+        }
+
+        public async Task<Payload<IList<SongProfileDto>>> GetRandomSong(int? size)
+        {
+            Random random = new Random();
+            var qure = (from s in _songRepository.Table
+                        where s.IsDeleted == false && s.IsPrivate == true
+                        select new SongProfileDto
+                        {
+                            Id = s.Id,
+                            Image = s.Img,
+                            Name = s.Name,
+                            Source = s.Source,
+                            DurationTime = s.DurationTime,
+                            CreateAt = s.CreatedAt,
+                            UserId = s.UserId,
+                            User = new UserProfileDto() { }
+                        }).AsEnumerable()
+                          .OrderBy(x => random.Next())
+                          .Take(size ?? 3).ToList();
+
+            if (qure == null)
+            {
+                return Payload<IList<SongProfileDto>>.NoContent(SongResource.NOSONGFOUND);
+            }
+
+            foreach (var item in qure)
+            {
+                var user = await _userService.GetUserById(item.UserId);
+                if (user.Content != null)
+                {
+                    item.User = user.Content;
+                }
+            }
+            return Payload<IList<SongProfileDto>>.Successfully(qure, SongResource.GETSUCCESS);
+        }
+
+        public async Task<Payload<object>> GetSongAdmin(int pageIndex, int pageSize)
+        {
+            var qure = (from s in _songRepository.Table
+                        join u in _userRepository.Table on s.UserId equals u.Id
+                        where s.IsDeleted == false && u.IsDeleted == false
+                        select new SongProfileDto
+                        {
+                            Id = s.Id,
+                            Image = s.Img,
+                            Name = s.Name,
+                            Source = s.Source,
+                            DurationTime = s.DurationTime,
+                            CreateAt = s.CreatedAt,
+                            IsPrivate = s.IsPrivate,
+                            UserId = s.UserId,
+                            User = new UserProfileDto() { }
+                        }).ToList();
+
+            foreach (var item in qure)
+            {
+                var user = await _userService.GetUserById(item.UserId);
+                if (user.Content != null)
+                {
+                    item.User = user.Content;
+                }
+
+            }
+
+            var pageList = await PageList<SongProfileDto>.Create(qure.AsQueryable(), pageIndex, pageSize);
+
+            if (pageList.Count == 0)
+            {
+                return Payload<Object>.NoContent(SongResource.NOSONGFOUND);
+            }
+
+            return Payload<Object>.Successfully(new
+            {
+                Data = pageList,
+                PageIndex = pageIndex,
+                Total = qure.Count(),
+                TotalPages = pageList.totalPages
+            }, SongResource.GETSUCCESS);
         }
     }
 }

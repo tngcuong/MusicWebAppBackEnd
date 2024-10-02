@@ -12,5 +12,6 @@ namespace MusicWebAppBackend.Infrastructure.ViewModels.Song
         public string Source { get; set; }
         public float DurationTime { get; set; }
         public DateTime CreateAt { get; set; }
+        public bool IsPrivate { get; set; }
     }
 }

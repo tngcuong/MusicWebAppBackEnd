@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System;
-
-namespace MusicWebAppBackend.Infrastructure.Utils
+﻿namespace MusicWebAppBackend.Infrastructure.Utils
 {
     public static class GenerateRandomColor
     {
@@ -9,7 +6,7 @@ namespace MusicWebAppBackend.Infrastructure.Utils
         {
             string startColor = GetRandomColor();
             string endColor = GetRandomColor();
-            return  $"linear-gradient(to right, {startColor}, {endColor})";
+            return $"linear-gradient(to right, {startColor}, {endColor})";
         }
 
         private static string GetRandomColor()

@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MusicWebAppBackend.Infrastructure.EnumTypes;
 using MusicWebAppBackend.Services;
-using System.Drawing.Printing;
 
 namespace MusicWebAppBackend.Controllers
 {
@@ -12,8 +10,8 @@ namespace MusicWebAppBackend.Controllers
     public class LikedSongController : ControllerBase
     {
         private readonly ILikedSongService _likedSongService;
-        public LikedSongController(ILikedSongService likedSongService) 
-        { 
+        public LikedSongController(ILikedSongService likedSongService)
+        {
             _likedSongService = likedSongService;
         }
 
@@ -38,7 +36,7 @@ namespace MusicWebAppBackend.Controllers
         [Route(nameof(RemoveSongToLikedSong))]
         [AllowAnonymous]
         [HttpPost]
-        public async Task<ActionResult> RemoveSongToLikedSong([FromQuery] string idUser,[FromBody] string idSong)
+        public async Task<ActionResult> RemoveSongToLikedSong([FromQuery] string idUser, [FromBody] string idSong)
         {
             var data = await _likedSongService.RemoveSongToLiked(idUser, idSong);
             return StatusCode((int)data.ErrorCode, data);

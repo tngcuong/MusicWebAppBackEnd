@@ -2,7 +2,6 @@
 using MusicWebAppBackend.Infrastructure.Helpers;
 using MusicWebAppBackend.Infrastructure.Models;
 using MusicWebAppBackend.Infrastructure.ViewModels.Account;
-using MusicWebAppBackend.Infrastructure.ViewModels.User;
 
 namespace MusicWebAppBackend.Infrastructure.Mappers
 {

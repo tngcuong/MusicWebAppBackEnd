@@ -1,6 +1,4 @@
-﻿using AutoMapper;
-using FuzzySharp;
-using Microsoft.AspNetCore.Mvc;
+﻿using FuzzySharp;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
 using MusicWebAppBackend.Infrastructure.Helpers;
@@ -10,12 +8,8 @@ using MusicWebAppBackend.Infrastructure.Models.Const;
 using MusicWebAppBackend.Infrastructure.Models.Data;
 using MusicWebAppBackend.Infrastructure.Models.Paging;
 using MusicWebAppBackend.Infrastructure.ViewModels;
-using MusicWebAppBackend.Infrastructure.ViewModels.Account;
-using MusicWebAppBackend.Infrastructure.ViewModels.PlayList;
-using MusicWebAppBackend.Infrastructure.ViewModels.Song;
 using MusicWebAppBackend.Infrastructure.ViewModels.User;
 using System.Data;
-using System.Diagnostics;
 
 
 namespace MusicWebAppBackend.Services
@@ -31,6 +25,8 @@ namespace MusicWebAppBackend.Services
         Task<Payload<IList<UserProfileDto>>> GetFollowerByUserId(string id);
         Task<Payload<IList<DetailUserDto>>> SearchPeopleByName(string? name);
         Task<Payload<UserProfileDto>> ToggleFollowUser(string id, string idUser);
+        Task<Payload<IList<UserProfileDto>>> GetRandomUser(int? size);
+        Task<Payload<int>> CountFollowerByUserId(string id);
     }
 
     public class UserService : IUserService
@@ -248,7 +244,12 @@ namespace MusicWebAppBackend.Services
             IList<UserProfileDto> result = new List<UserProfileDto>();
             foreach (var item in user.Following)
             {
-                result.Add(GetUserById(item).Result.Content);
+                var userItem = await GetUserById(item);
+                if (userItem.Content != null)
+                {
+                    result.Add(userItem.Content);
+                }
+
             }
 
             return Payload<IList<UserProfileDto>>.Successfully(result);
@@ -300,27 +301,43 @@ namespace MusicWebAppBackend.Services
         {
 
             IList<DetailUserDto> userMatching = new List<DetailUserDto>();
-            var userList = await Task.FromResult(_userRepository.Table.Where(s => s.IsDeleted == false).ToList());
-            userMatching = await Task.FromResult(userList
-            .Select(p => new
-            {
-                User = p,
-                Similarity = Fuzz.Ratio(p.Name, name)
-            })
-            .OrderByDescending(p => p.Similarity)
-            .Select(p => new DetailUserDto
-            {
-                Id = p.User.Id,
-                Avatar = p.User.Avatar,
-                CoverAvatar = p.User.CoverAvatar,
-                Description = p.User.Description,
-                Name = p.User.Name,
-                Following = new List<string>(p.User.Following),
-            }).ToList());
 
-            if (!name.IsNullOrEmpty())
+
+            if (!name.IsNullOrEmpty() && !name.Equals("undefined"))
             {
-                userMatching = userMatching.Where(p => p.Name.ToLower().Contains(name.ToLower())).ToList();
+                var userList = await Task.FromResult(_userRepository.Table.Where(s => s.IsDeleted == false).ToList());
+                userMatching = await Task.FromResult(userList
+                .Select(p => new
+                {
+                    User = p,
+                    Similarity = Fuzz.Ratio(p.Name, name)
+                })
+                .OrderByDescending(p => p.Similarity)
+                .Select(p => new DetailUserDto
+                {
+                    Id = p.User.Id,
+                    Avatar = p.User.Avatar,
+                    CoverAvatar = p.User.CoverAvatar,
+                    Description = p.User.Description,
+                    Name = p.User.Name,
+                    Following = new List<string>(p.User.Following),
+                }).ToList());
+
+            }
+            else
+            {
+                userMatching = await Task.FromResult((from p in _userRepository.Table
+                                                      where p.IsDeleted == false
+                                                      select new DetailUserDto
+                                                      {
+                                                          Id = p.Id,
+                                                          Avatar = p.Avatar,
+                                                          CoverAvatar = p.CoverAvatar,
+                                                          Description = p.Description,
+                                                          Name = p.Name,
+                                                          Following = new List<string>(p.Following),
+                                                      }).ToList());
+
             }
 
             if (userMatching == null || userMatching.Count == 0)
@@ -358,6 +375,41 @@ namespace MusicWebAppBackend.Services
 
             UserProfileDto result = user.MapTo<User, UserProfileDto>();
             return Payload<UserProfileDto>.Successfully(result);
+        }
+
+        public async Task<Payload<IList<UserProfileDto>>> GetRandomUser(int? size)
+        {
+            Random random = new Random();
+            var qure = (from r in _roleRepository.Table
+                        from u in _userRepository.Table
+                        where r.Users.Contains(u.Id)
+                        where u.IsDeleted == false
+                        select new UserProfileDto
+                        {
+                            Id = u.Id,
+                            Avatar = u.Avatar,
+                            Email = u.Email,
+                            Username = u.UserName,
+                            Name = u.Name,
+                            Role = r.Name,
+                            ListSong = new List<string>(u.LikedSong),
+                        }).AsEnumerable()
+                          .OrderBy(x => random.Next())
+                          .Take(size ?? 3).ToList();
+            if (!qure.Any())
+            {
+                return Payload<IList<UserProfileDto>>.NoContent(UserResource.NOUSERFOUND);
+            }
+
+            return Payload<IList<UserProfileDto>>.Successfully(qure, UserResource.GETUSERSUCCESSFUL);
+        }
+
+        public async Task<Payload<int>> CountFollowerByUserId(string id)
+        {
+            var query = _userRepository.Table.Where(u => u.Id != id).SelectMany(u => u.Following)
+                        .Count(us => us == id);
+
+            return Payload<int>.Successfully(query, UserResource.NOUSERFOUND);
         }
     }
 }

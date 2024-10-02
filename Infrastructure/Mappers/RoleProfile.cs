@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using MusicWebAppBackend.Infrastructure.Models;
 using MusicWebAppBackend.Infrastructure.ViewModels.Role;
-using MusicWebAppBackend.Infrastructure.ViewModels.User;
 
 namespace MusicWebAppBackend.Infrastructure.Mappers
 {

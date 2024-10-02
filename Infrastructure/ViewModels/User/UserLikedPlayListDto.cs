@@ -1,6 +1,4 @@
-﻿using MusicWebAppBackend.Infrastructure.Mappers;
-using MusicWebAppBackend.Infrastructure.ViewModels.PlayList;
-using MusicWebAppBackend.Infrastructure.ViewModels.Song;
+﻿using MusicWebAppBackend.Infrastructure.ViewModels.PlayList;
 
 namespace MusicWebAppBackend.Infrastructure.ViewModels.User
 {

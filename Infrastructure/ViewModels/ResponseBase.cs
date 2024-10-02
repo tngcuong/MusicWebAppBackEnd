@@ -1,5 +1,4 @@
-﻿using MusicWebAppBackend.Infrastructure.Models.Paging;
-using System.Net;
+﻿using System.Net;
 
 namespace MusicWebAppBackend.Infrastructure.ViewModels
 {

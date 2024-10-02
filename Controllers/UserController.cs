@@ -1,10 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MusicWebAppBackend.Infrastructure.Mappers.MapingExtensions;
-using MusicWebAppBackend.Infrastructure.Models;
-using MusicWebAppBackend.Infrastructure.Models.Data;
-using MusicWebAppBackend.Infrastructure.Models.Paging;
-using MusicWebAppBackend.Infrastructure.ViewModels;
 using MusicWebAppBackend.Infrastructure.ViewModels.User;
 using MusicWebAppBackend.Services;
 
@@ -103,6 +98,24 @@ namespace MusicWebAppBackend.Controllers
         public async Task<ActionResult> ToggleFollowUser([FromQuery] string id, [FromBody] string userId)
         {
             var data = await _userService.ToggleFollowUser(id, userId);
+            return StatusCode((int)data.ErrorCode, data);
+        }
+
+        [Route(nameof(GetRandomUser))]
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<ActionResult> GetRandomUser(int? size)
+        {
+            var data = await _userService.GetRandomUser(size);
+            return StatusCode((int)data.ErrorCode, data);
+        }
+
+        [Route(nameof(CountFollowerByUserId))]
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<ActionResult> CountFollowerByUserId(string id)
+        {
+            var data = await _userService.CountFollowerByUserId(id);
             return StatusCode((int)data.ErrorCode, data);
         }
     }

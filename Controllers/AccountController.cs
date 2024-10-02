@@ -1,12 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MusicWebAppBackend.Infrastructure.Models;
 using MusicWebAppBackend.Infrastructure.ViewModels;
 using MusicWebAppBackend.Infrastructure.ViewModels.Account;
 using MusicWebAppBackend.Services;
-using System.Net;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MusicWebAppBackend.Controllers
 {
@@ -40,6 +37,15 @@ namespace MusicWebAppBackend.Controllers
         public async Task<ActionResult> VerifyEmail(VerifyDto request)
         {
             var data = await _accountService.VerifyEmail(request);
+            return StatusCode((int)data.ErrorCode, data);
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [Route(nameof(VerifyChange))]
+        public async Task<ActionResult> VerifyChange(VerifyChangeDto request)
+        {
+            var data = await _accountService.VerifyChange(request);
             return StatusCode((int)data.ErrorCode, data);
         }
 
@@ -98,6 +104,15 @@ namespace MusicWebAppBackend.Controllers
         public async Task<ActionResult> UpdateAvatar([FromForm] UpdateAvatarDto request)
         {
             var data = await _accountService.UpdateAvartar(request);
+            return StatusCode((int)data.ErrorCode, data);
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [Route(nameof(ChangePassword))]
+        public async Task<ActionResult> ChangePassword(ResetPasswordDto account)
+        {
+            var data = await _accountService.ResetPasswordSendMail(account);
             return StatusCode((int)data.ErrorCode, data);
         }
     }

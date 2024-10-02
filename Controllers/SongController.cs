@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MusicWebAppBackend.Infrastructure.ViewModels.Song;
-using MusicWebAppBackend.Infrastructure.ViewModels.User;
 using MusicWebAppBackend.Services;
 
 namespace MusicWebAppBackend.Controllers
@@ -34,6 +32,14 @@ namespace MusicWebAppBackend.Controllers
         public async Task<ActionResult> GetSong(int pageIndex, int pageSize)
         {
             var data = await _songService.GetSong(pageIndex, pageSize);
+            return StatusCode((int)data.ErrorCode, data);
+        }
+
+        [Route(nameof(GetSongAdmin))]
+        [HttpGet]
+        public async Task<ActionResult> GetSongAdmin(int pageIndex, int pageSize)
+        {
+            var data = await _songService.GetSongAdmin(pageIndex, pageSize);
             return StatusCode((int)data.ErrorCode, data);
         }
 
@@ -70,6 +76,23 @@ namespace MusicWebAppBackend.Controllers
         public async Task<ActionResult> SearchSongByName(string? name)
         {
             var data = await _songService.SearchSongByName(name);
+            return StatusCode((int)data.ErrorCode, data);
+        }
+
+        [Route(nameof(GetRandomSong))]
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<ActionResult> GetRandomSong(int? size)
+        {
+            var data = await _songService.GetRandomSong(size);
+            return StatusCode((int)data.ErrorCode, data);
+        }
+
+        [Route(nameof(ToggleApproveSongById))]
+        [HttpPut]
+        public async Task<ActionResult> ToggleApproveSongById(string id)
+        {
+            var data = await _songService.ToggleApproveSongById(id);
             return StatusCode((int)data.ErrorCode, data);
         }
     }

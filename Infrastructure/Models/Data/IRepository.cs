@@ -1,5 +1,5 @@
-﻿using System.Linq.Expressions;
-using MusicWebAppBackend.Infrastructure.Models.Entites;
+﻿using MusicWebAppBackend.Infrastructure.Models.Entites;
+using System.Linq.Expressions;
 
 namespace MusicWebAppBackend.Infrastructure.Models.Data
 {

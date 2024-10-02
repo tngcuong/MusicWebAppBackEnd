@@ -1,6 +1,4 @@
-﻿using MusicWebAppBackend.Infrastructure.ViewModels.Song;
-
-namespace MusicWebAppBackend.Infrastructure.ViewModels.User
+﻿namespace MusicWebAppBackend.Infrastructure.ViewModels.User
 {
     public class FollowedUserDto
     {

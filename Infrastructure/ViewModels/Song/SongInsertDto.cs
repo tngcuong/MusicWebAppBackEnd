@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-
-namespace MusicWebAppBackend.Infrastructure.ViewModels.Song
+﻿namespace MusicWebAppBackend.Infrastructure.ViewModels.Song
 {
     public class SongInsertDto
     {

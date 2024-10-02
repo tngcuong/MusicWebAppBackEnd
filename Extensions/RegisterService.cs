@@ -1,7 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.ViewEngines;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using MusicWebAppBackend.Infrastructure.Helpers;
 using MusicWebAppBackend.Infrastructure.Mappers.Config;
 using MusicWebAppBackend.Infrastructure.Models;
@@ -21,6 +18,7 @@ namespace MusicWebAppBackend.Extensions
             services.AddScoped<ConfigEmail>();
             services.AddScoped<IPlayListService, PlayListService>();
             services.AddScoped<IFileService, FileService>();
+            services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<ISongService, SongService>();
@@ -28,6 +26,7 @@ namespace MusicWebAppBackend.Extensions
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<ILikedSongService, LikedSongService>();
             services.AddScoped<ILikedPlayListService, LikedPlayList>();
+            services.AddScoped<ICommentService, CommentService>();
             services.AddScoped<DbContext>();
             return services;
         }

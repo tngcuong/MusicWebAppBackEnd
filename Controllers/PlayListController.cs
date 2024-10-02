@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MusicWebAppBackend.Infrastructure.ViewModels.PlayList;
-using MusicWebAppBackend.Infrastructure.ViewModels.Role;
 using MusicWebAppBackend.Services;
 
 namespace MusicWebAppBackend.Controllers

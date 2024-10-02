@@ -2,7 +2,7 @@
 
 namespace MusicWebAppBackend.Infrastructure.ViewModels
 {
-    public class Payload<T> 
+    public class Payload<T>
     {
         public Payload(T? content = default, HttpStatusCode errCode = 0, string errMsg = "")
         {
@@ -22,7 +22,7 @@ namespace MusicWebAppBackend.Infrastructure.ViewModels
 
         public static Payload<T> NotFound(string message = "")
         {
-            return new Payload<T>(default, HttpStatusCode.NotFound , string.IsNullOrEmpty(message) ? "Item not found!" : message);
+            return new Payload<T>(default, HttpStatusCode.NotFound, string.IsNullOrEmpty(message) ? "Item not found!" : message);
         }
 
         public static Payload<T> BadRequest(string message = "")

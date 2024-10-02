@@ -1,5 +1,4 @@
-﻿using MongoDB.Bson;
-using MusicWebAppBackend.Infrastructure.EnumTypes;
+﻿using MusicWebAppBackend.Infrastructure.EnumTypes;
 using System.Drawing;
 using System.Net.Mail;
 using System.Text.RegularExpressions;
@@ -12,7 +11,7 @@ namespace MusicWebAppBackend.Infrastructure.Helpers
         {
             try
             {
-                if(file == null) return false;
+                if (file == null) return false;
                 using (var memoryStream = new MemoryStream())
                 {
                     file.CopyTo(memoryStream);

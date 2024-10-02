@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace MusicWebAppBackend.Infrastructure.ViewModels.User
+﻿namespace MusicWebAppBackend.Infrastructure.ViewModels.User
 {
     public class UserLoginDto
     {
